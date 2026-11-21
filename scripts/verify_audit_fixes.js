@@ -224,27 +224,28 @@ async function runTests() {
     }
 
     // TEST 4b & 5: Camera Zoom Model & Guided vs Explore modes (P1 Fix)
-    console.log('\n[TEST 05 · P1] Dual Camera Navigation & Explore HUD with Searchable Selector...');
+    console.log('\n[TEST 05 · P1] Dual Camera Navigation & Compact Viewport Camera Dock...');
     const hudState = await page.evaluate(() => {
       const toggle = document.getElementById('hud-mode-toggle');
       toggle.click(); // Enter Explore mode
       const u = window.__UNIVERSE__;
-      const select = document.getElementById('hud-celestial-select');
-      const optionCount = select ? select.options.length : 0;
+      const dock = document.getElementById('viewport-camera-dock');
+      const toolsGroup = document.getElementById('hud-controls-group');
+      const heroOpacity = parseFloat(window.getComputedStyle(document.querySelector('.hero-cinematic-content')).opacity);
 
       return {
         modeAfterToggle: u?.universeScene?.mode,
+        toolsVisible: toolsGroup && !toolsGroup.hasAttribute('hidden'),
+        heroOpacity,
         hudButtonsExist: !!(
           document.getElementById('hud-zoom-in') &&
           document.getElementById('hud-zoom-out') &&
-          document.getElementById('hud-focus') &&
           document.getElementById('hud-home') &&
           document.getElementById('hud-exit')
-        ),
-        quickJumpOptionsCount: optionCount
+        )
       };
     });
-    console.log(`  -> Mode after toggle: ${hudState.modeAfterToggle}, HUD controls present: ${hudState.hudButtonsExist}, Quick-jump options: ${hudState.quickJumpOptionsCount}`);
+    console.log(`  -> Mode after toggle: ${hudState.modeAfterToggle}, Tools visible: ${hudState.toolsVisible}, Hero opacity: ${hudState.heroOpacity}, Controls present: ${hudState.hudButtonsExist}`);
     
     // Press Escape to return to Guided mode
     await page.keyboard.press('Escape');
@@ -253,11 +254,11 @@ async function runTests() {
     const modeAfterEsc = await page.evaluate(() => window.__UNIVERSE__?.universeScene?.mode);
     console.log(`  -> Mode after Escape key: ${modeAfterEsc}`);
 
-    if (hudState.modeAfterToggle !== 'explore' || !hudState.hudButtonsExist || modeAfterEsc !== 'guided' || hudState.quickJumpOptionsCount < 10) {
-      console.error('  -> FAIL: Explore mode toggle, quick jump selector, or Escape key return failed!');
+    if (hudState.modeAfterToggle !== 'explore' || !hudState.hudButtonsExist || !hudState.toolsVisible || hudState.heroOpacity < 0.8 || modeAfterEsc !== 'guided') {
+      console.error('  -> FAIL: Explore mode toggle, tools visibility, hero opacity preservation, or Escape return failed!');
       allPassed = false;
     } else {
-      console.log('  -> PASS: Explore mode active with HUD controls, quick-jump body selector; Escape returns to Guided mode.');
+      console.log('  -> PASS: Compact camera dock smoothly toggles explore orbit, keeps hero visible (no black void dimming), and Escape returns to guided mode.');
     }
 
     // TEST 4c: Probe Telemetry Modal on Planet & Sun (P1 Fix)

@@ -278,11 +278,17 @@ export class UniverseScene {
     window.dispatchEvent(new CustomEvent('universe:mode-changed', { detail: { mode } }));
 
     if (mode === 'explore') {
+      // If no target is explicitly focused, ensure exploreTarget centers on the solar origin (0, 0, 0)
+      if (!this.focusedTarget) {
+        this.exploreTarget.set(0, 0, 0);
+      }
       // Sync explore spherical from current camera position
       const offset = new THREE.Vector3().subVectors(this.currentCamPos, this.exploreTarget);
       this.exploreSpherical.setFromVector3(offset);
       this.exploreSpherical.radius = THREE.MathUtils.clamp(this.exploreSpherical.radius, 35, 800);
       this.exploreSpherical.phi = THREE.MathUtils.clamp(this.exploreSpherical.phi, 0.15, Math.PI - 0.2);
+    } else {
+      this.clearFocus();
     }
   }
 
@@ -304,6 +310,7 @@ export class UniverseScene {
   }
 
   resetHome() {
+    this.clearFocus();
     this.exploreTarget.set(0, 0, 0);
     this.exploreSpherical.set(420, Math.PI * 0.35, 0);
     this.updateExploreCameraPosition();

@@ -228,57 +228,17 @@ function setupExploreHUD(universeScene, probeModal) {
   const controlsGroup = document.getElementById('hud-controls-group');
   const zoomInBtn = document.getElementById('hud-zoom-in');
   const zoomOutBtn = document.getElementById('hud-zoom-out');
-  const focusBtn = document.getElementById('hud-focus');
   const homeBtn = document.getElementById('hud-home');
   const exitBtn = document.getElementById('hud-exit');
-  const jumpSelect = document.getElementById('hud-celestial-select');
 
   if (!toggleBtn) return;
-
-  // Populate celestial quick jump selector from GALAXY_CONFIG
-  if (jumpSelect && jumpSelect.options.length <= 1) {
-    const sunOpt = document.createElement('option');
-    sunOpt.value = GALAXY_CONFIG.sun.id;
-    sunOpt.textContent = `★ ${GALAXY_CONFIG.sun.name}`;
-    jumpSelect.appendChild(sunOpt);
-
-    const planetGroup = document.createElement('optgroup');
-    planetGroup.label = 'Language Planets';
-    GALAXY_CONFIG.planets.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = `♁ ${p.name} (Orbit ${p.orbitIndex})`;
-      planetGroup.appendChild(opt);
-    });
-    jumpSelect.appendChild(planetGroup);
-
-    const moonGroup = document.createElement('optgroup');
-    moonGroup.label = 'Project Moons';
-    GALAXY_CONFIG.moons.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = `☾ ${m.name}${m.isMajor ? ' [Case Study]' : ''}`;
-      moonGroup.appendChild(opt);
-    });
-    jumpSelect.appendChild(moonGroup);
-
-    jumpSelect.addEventListener('change', () => {
-      const targetId = jumpSelect.value;
-      if (targetId) {
-        universeScene.focusOnBody(targetId);
-        if (probeModal) {
-          probeModal.open(targetId);
-        }
-      }
-    });
-  }
 
   function updateHUDView(mode) {
     const isExplore = mode === 'explore';
     toggleBtn.setAttribute('aria-pressed', isExplore ? 'true' : 'false');
-    const labelSpan = toggleBtn.querySelector('.hud-mode-text');
+    const labelSpan = toggleBtn.querySelector('.camera-dock-label, .hud-mode-text');
     if (labelSpan) {
-      labelSpan.textContent = isExplore ? 'Explore Mode Active' : 'Explore Galaxy';
+      labelSpan.textContent = isExplore ? 'Orbiting' : 'Free Orbit';
     }
     toggleBtn.classList.toggle('is-active', isExplore);
     if (controlsGroup) {
@@ -298,17 +258,6 @@ function setupExploreHUD(universeScene, probeModal) {
 
   if (zoomInBtn) zoomInBtn.addEventListener('click', () => universeScene.zoomIn());
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => universeScene.zoomOut());
-  if (focusBtn) {
-    focusBtn.addEventListener('click', () => {
-      // Re-center on currently focused target or central Sun
-      if (universeScene.focusedTarget?.targetObj) {
-        universeScene.exploreTarget.copy(universeScene.focusedTarget.getPosition());
-      } else {
-        universeScene.exploreTarget.set(0, 0, 0);
-      }
-      universeScene.updateExploreCameraPosition();
-    });
-  }
   if (homeBtn) homeBtn.addEventListener('click', () => universeScene.resetHome());
   if (exitBtn) exitBtn.addEventListener('click', () => universeScene.setMode('guided'));
 
