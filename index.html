@@ -3,2355 +3,722 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Diwakar Venkat Peddada — Software Engineer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diwakar Venkat Peddada — Personal Universe</title>
   <meta name="description"
-    content="Diwakar (Diva) Venkat Peddada builds real-time software, AI applications, and research tooling: a live subtitle overlay for Windows, an evidence pipeline for medical literature, and fast front-ends in React.">
+    content="Personal portfolio of Diwakar Venkat Peddada (Diva) — AI developer and software engineer. Languages are planets, projects are moons, and Diwakar is the sun at the center. LiveSubs, Griffin Bio, Knox, SyGriffin.">
   <meta name="author" content="Diwakar Venkat Peddada">
-  <meta name="theme-color" content="#0f1216">
+  <meta name="theme-color" content="#06080d">
   <link rel="canonical" href="https://myselfdiva.netlify.app/">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://myselfdiva.netlify.app/">
-  <meta property="og:title" content="Diwakar Venkat Peddada — Software Engineer">
+  <meta property="og:title" content="Diwakar Venkat Peddada — Personal Universe">
   <meta property="og:description"
-    content="Real-time subtitle overlays, research pipelines, and fast interfaces. Portfolio of Diwakar Venkat Peddada.">
-  <meta property="og:site_name" content="Diva">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Diwakar Venkat Peddada — Software Engineer">
+    content="Languages are planets. Projects are moons. Diwakar is the sun at the center. High-performance software, AI applications, and live systems.">
+  <meta property="og:site_name" content="Diwakar Venkat Peddada">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Diwakar Venkat Peddada — Personal Universe">
   <meta name="twitter:description"
-    content="Real-time subtitle overlays, research pipelines, and fast interfaces.">
+    content="Languages are planets. Projects are moons. Diwakar is the sun at the center.">
 
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <style>
-/* ============================================================
-   Diva — portfolio
-   Direction: "live caption track". The page is treated as a
-   video timeline; the fixed caption bar is the signature.
-   Palette borrowed from broadcast/teletext subtitle colours.
-   ============================================================ */
 
-:root {
-  /* ground + surfaces */
-  --ground: #0f1216;
-  --ground-2: #12161b;
-  --panel: #171d24;
-  --panel-2: #1c242d;
-  --rule: #29323d;
-  --rule-soft: #1f262e;
-
-  /* type */
-  --type: #e6eaf0;
-  --dim: #8b96a5;
-  --faint: #5c6774;
-
-  /* teletext caption colours, used semantically */
-  --cc-yellow: #ffd24c;
-  /* now / live / primary */
-  --cc-cyan: #4fd6e8;
-  /* engineering, links */
-  --cc-magenta: #f06ac8;
-  /* research */
-  --cc-green: #7fe08a;
-  /* shipped / status ok */
-
-  --shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.9);
-
-  --bar-h: 54px;
-  --nav-h: 60px;
-  --gutter: clamp(1.25rem, 4vw, 4rem);
-  --max: 1240px;
-
-  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: calc(var(--nav-h) + 1.25rem);
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  background: var(--ground);
-  color: var(--type);
-  font-family: 'Archivo', system-ui, sans-serif;
-  font-stretch: 100%;
-  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
-  line-height: 1.65;
-  overflow-x: hidden;
-  padding-bottom: calc(var(--bar-h) + 1.5rem);
-  -webkit-font-smoothing: antialiased;
-}
-
-body.cc-off {
-  padding-bottom: 3rem;
-}
-
-img,
-svg,
-video,
-canvas {
-  display: block;
-  max-width: 100%;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-ul {
-  list-style: none;
-}
-
-::selection {
-  background: var(--cc-yellow);
-  color: #0b0d10;
-}
-
-:focus-visible {
-  outline: 2px solid var(--cc-yellow);
-  outline-offset: 3px;
-  border-radius: 2px;
-}
-
-/* ---------- shared type roles ---------- */
-
-.mono {
-  font-family: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.display {
-  font-family: 'Archivo', system-ui, sans-serif;
-  font-stretch: 122%;
-  font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-.lead {
-  font-size: clamp(1.05rem, 1rem + 0.5vw, 1.35rem);
-  color: var(--dim);
-  line-height: 1.6;
-  max-width: 54ch;
-}
-
-.wrap {
-  width: 100%;
-  max-width: var(--max);
-  margin-inline: auto;
-  padding-inline: var(--gutter);
-}
-
-/* ---------- ambient layers ---------- */
-
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 9;
-  pointer-events: none;
-  opacity: 0.035;
-  mix-blend-mode: screen;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.scanlines {
-  position: fixed;
-  inset: 0;
-  z-index: 8;
-  pointer-events: none;
-  opacity: 0.5;
-  background: repeating-linear-gradient(to bottom,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 3px);
-}
-
-.glow {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(60rem 40rem at 12% 0%, rgba(79, 214, 232, 0.07), transparent 60%),
-    radial-gradient(50rem 40rem at 95% 18%, rgba(255, 210, 76, 0.06), transparent 60%),
-    radial-gradient(60rem 50rem at 50% 110%, rgba(240, 106, 200, 0.05), transparent 60%);
-}
-
-/* ---------- skip link ---------- */
-
-.skip {
-  position: fixed;
-  top: -200px;
-  left: 1rem;
-  z-index: 200;
-  padding: 0.7rem 1.1rem;
-  background: var(--cc-yellow);
-  color: #0b0d10;
-  font-weight: 600;
-  border-radius: 2px;
-}
-
-.skip:focus {
-  top: 1rem;
-}
-
-/* ---------- nav ---------- */
-
-.nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 60;
-  height: var(--nav-h);
-  display: flex;
-  align-items: center;
-  background: rgba(15, 18, 22, 0.72);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border-bottom: 1px solid var(--rule-soft);
-}
-
-.nav-inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.82rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--type);
-}
-
-.rec {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--cc-yellow);
-  box-shadow: 0 0 0 0 rgba(255, 210, 76, 0.55);
-  animation: rec 2.4s infinite;
-}
-
-@keyframes rec {
-  0% {
-    box-shadow: 0 0 0 0 rgba(255, 210, 76, 0.5);
-  }
-
-  70% {
-    box-shadow: 0 0 0 9px rgba(255, 210, 76, 0);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 210, 76, 0);
-  }
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
-}
-
-.nav-links a {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dim);
-  padding: 0.35rem 0;
-  position: relative;
-  transition: color 0.25s var(--ease);
-}
-
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 1px;
-  width: 0;
-  background: var(--cc-yellow);
-  transition: width 0.35s var(--ease);
-}
-
-.nav-links a:hover,
-.nav-links a[aria-current='true'] {
-  color: var(--type);
-}
-
-.nav-links a[aria-current='true']::after,
-.nav-links a:hover::after {
-  width: 100%;
-}
-
-.nav-clock {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.burger {
-  display: none;
-  width: 40px;
-  height: 34px;
-  border: 1px solid var(--rule);
-  background: transparent;
-  border-radius: 3px;
-  cursor: pointer;
-  padding: 9px 10px;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.burger span {
-  display: block;
-  height: 1.5px;
-  background: var(--type);
-  transition: transform 0.3s var(--ease), opacity 0.2s;
-}
-
-.burger[aria-expanded='true'] span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.burger[aria-expanded='true'] span:nth-child(2) {
-  opacity: 0;
-}
-
-.burger[aria-expanded='true'] span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-.drawer {
-  position: fixed;
-  inset: var(--nav-h) 0 0 0;
-  z-index: 55;
-  background: rgba(11, 14, 18, 0.97);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0 var(--gutter) 20vh;
-  transform: translateY(-100%);
-  visibility: hidden;
-  transition: transform 0.5s var(--ease), visibility 0.5s;
-}
-
-.drawer.open {
-  transform: translateY(0);
-  visibility: visible;
-}
-
-.drawer a {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 118%;
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: clamp(1.7rem, 8vw, 2.2rem);
-  line-height: 1.25;
-  border-bottom: 1px solid var(--rule-soft);
-  padding: 0.5rem 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease), color 0.2s;
-}
-
-.drawer.open a {
-  opacity: 1;
-  transform: none;
-  transition-delay: calc(0.06s * var(--i));
-}
-
-.drawer a span {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  color: var(--faint);
-}
-
-.drawer a:hover {
-  color: var(--cc-yellow);
-}
-
-/* ---------- section chrome ---------- */
-
-.track {
-  position: relative;
-  z-index: 1;
-  padding-block: clamp(4.5rem, 10vw, 8.5rem);
-  border-top: 1px solid var(--rule-soft);
-}
-
-.track-head {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: clamp(2rem, 5vw, 3.5rem);
-  padding-bottom: 0.9rem;
-  border-bottom: 1px solid var(--rule-soft);
-}
-
-.track-head .slug {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cc-yellow);
-  white-space: nowrap;
-}
-
-.track-head h2 {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 122%;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: -0.015em;
-  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.6rem);
-  line-height: 1;
-}
-
-.track-head .count {
-  margin-left: auto;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  color: var(--faint);
-  white-space: nowrap;
-}
-
-/* ---------- hero ---------- */
-
-.hero {
-  position: relative;
-  z-index: 1;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  padding-top: calc(var(--nav-h) + 3rem);
-  padding-bottom: 4rem;
-  overflow: hidden;
-}
-
-.hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: clamp(2rem, 5vw, 4.5rem);
-  align-items: center;
-  width: 100%;
-}
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cc-green);
-  border: 1px solid rgba(127, 224, 138, 0.28);
-  background: rgba(127, 224, 138, 0.07);
-  padding: 0.4rem 0.85rem;
-  border-radius: 100px;
-  margin-bottom: 1.6rem;
-}
-
-.status i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--cc-green);
-  animation: rec 2s infinite;
-}
-
-.hero h1 {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 124%;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: clamp(2.4rem, 1rem + 7.4vw, 5.4rem);
-  line-height: 0.9;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.4rem;
-}
-
-.hero h1 .line {
-  display: block;
-  overflow: hidden;
-}
-
-.hero h1 .line>span {
-  display: block;
-}
-
-.hero h1 em {
-  font-style: normal;
-  color: var(--cc-yellow);
-}
-
-.hero-role {
-  font-family: 'DM Mono', monospace;
-  font-size: clamp(0.78rem, 0.7rem + 0.4vw, 0.95rem);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cc-cyan);
-  margin-bottom: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-height: 1.6em;
-}
-
-.hero-role .swap {
-  position: relative;
-  display: inline-block;
-}
-
-.hero-role .swap.out {
-  animation: swapOut 0.28s var(--ease) forwards;
-}
-
-.hero-role .swap.in {
-  animation: swapIn 0.34s var(--ease) forwards;
-}
-
-@keyframes swapOut {
-  to {
-    opacity: 0;
-    transform: translateY(-8px);
-    filter: blur(3px);
-  }
-}
-
-@keyframes swapIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-    filter: blur(3px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.85rem;
-  margin-top: 2.2rem;
-}
-
-/* buttons */
-
-.btn {
-  --btn-fg: #0b0d10;
-  --btn-bg: var(--cc-yellow);
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.76rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  padding: 0.95rem 1.5rem;
-  border-radius: 3px;
-  border: 1px solid var(--btn-bg);
-  background: var(--btn-bg);
-  color: var(--btn-fg);
-  cursor: pointer;
-  overflow: hidden;
-  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
-}
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px -12px rgba(255, 210, 76, 0.6);
-}
-
-.btn svg {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.3s var(--ease);
-}
-
-.btn:hover svg {
-  transform: translateX(3px);
-}
-
-.btn-ghost {
-  --btn-bg: transparent;
-  --btn-fg: var(--type);
-  border-color: var(--rule);
-}
-
-.btn-ghost::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(101%);
-  transition: transform 0.4s var(--ease);
-}
-
-.btn-ghost:hover {
-  border-color: var(--type);
-  box-shadow: none;
-}
-
-.btn-ghost:hover::before {
-  transform: translateY(0);
-}
-
-.btn-ghost span,
-.btn-ghost svg {
-  position: relative;
-  z-index: 1;
-}
-
-/* ---------- hero monitor ---------- */
-
-.monitor {
-  position: relative;
-  aspect-ratio: 9 / 13;
-  max-width: 420px;
-  margin-inline: auto;
-  width: 100%;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  background:
-    linear-gradient(180deg, rgba(79, 214, 232, 0.06), rgba(240, 106, 200, 0.05)),
-    var(--ground-2);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
-.monitor::after {
-  /* safe-area guide */
-  content: '';
-  position: absolute;
-  inset: 8%;
-  border: 1px dashed rgba(230, 234, 240, 0.09);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.monitor .sweep {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 30%;
-  top: -30%;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.045), transparent);
-  animation: sweep 6s linear infinite;
-  pointer-events: none;
-  z-index: 3;
-}
-
-@keyframes sweep {
-  to {
-    top: 110%;
-  }
-}
-
-.monitor .osd {
-  position: absolute;
-  z-index: 4;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  color: rgba(230, 234, 240, 0.55);
-  text-transform: uppercase;
-}
-
-.osd-tl {
-  top: 0.75rem;
-  left: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--cc-yellow);
-}
-
-.osd-tr {
-  top: 0.75rem;
-  right: 0.85rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.osd-bl {
-  bottom: 0.75rem;
-  left: 0.85rem;
-}
-
-#chroma-video {
-  display: none;
-}
-
-#chroma-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 0.8s var(--ease);
-  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55));
-}
-
-#chroma-canvas.live {
-  opacity: 1;
-}
-
-.monogram {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  transition: opacity 0.6s var(--ease);
-}
-
-.monogram.gone {
-  opacity: 0;
-}
-
-.monogram b {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 124%;
-  font-weight: 700;
-  font-size: clamp(4rem, 14vw, 7rem);
-  color: rgba(230, 234, 240, 0.1);
-  letter-spacing: -0.04em;
-}
-
-.monogram i {
-  position: absolute;
-  width: 62%;
-  aspect-ratio: 1;
-  border: 1px solid rgba(79, 214, 232, 0.18);
-  border-radius: 50%;
-  animation: pulseRing 4s ease-in-out infinite;
-}
-
-.monogram i:nth-of-type(2) {
-  width: 46%;
-  animation-delay: 1.2s;
-  border-color: rgba(255, 210, 76, 0.16);
-}
-
-@keyframes pulseRing {
-
-  0%,
-  100% {
-    transform: scale(0.94);
-    opacity: 0.5;
-  }
-
-  50% {
-    transform: scale(1.04);
-    opacity: 1;
-  }
-}
-
-.audio-btn {
-  position: absolute;
-  z-index: 5;
-  bottom: 0.7rem;
-  right: 0.85rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--type);
-  background: rgba(11, 14, 18, 0.72);
-  border: 1px solid var(--rule);
-  border-radius: 100px;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-}
-
-.audio-btn:hover {
-  border-color: var(--cc-yellow);
-  color: var(--cc-yellow);
-}
-
-.audio-btn svg {
-  width: 11px;
-  height: 11px;
-}
-
-/* ---------- about ---------- */
-
-.about-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: start;
-}
-
-.statement {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 108%;
-  font-weight: 500;
-  font-size: clamp(1.35rem, 1rem + 1.7vw, 2.25rem);
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-  margin-bottom: 1.8rem;
-}
-
-.statement b {
-  font-weight: 700;
-  color: var(--cc-yellow);
-}
-
-.about-body p+p {
-  margin-top: 1rem;
-}
-
-.about-body p {
-  color: var(--dim);
-}
-
-/* spec sheet */
-
-.spec {
-  border: 1px solid var(--rule-soft);
-  border-radius: 4px;
-  background: linear-gradient(180deg, var(--panel), var(--ground-2));
-  overflow: hidden;
-}
-
-.spec-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--rule-soft);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.spec dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-}
-
-.spec dt,
-.spec dd {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--rule-soft);
-  font-size: 0.85rem;
-}
-
-.spec dt {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--faint);
-  white-space: nowrap;
-}
-
-.spec dd {
-  text-align: right;
-  color: var(--type);
-}
-
-.spec dl>*:nth-last-child(-n+2) {
-  border-bottom: 0;
-}
-
-.spec dd b {
-  color: var(--cc-yellow);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- projects ---------- */
-
-.work {
-  border-top: 1px solid var(--rule-soft);
-}
-
-.work-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
-  gap: clamp(1.5rem, 4vw, 3.5rem);
-  align-items: center;
-  padding: clamp(1.8rem, 4vw, 2.8rem) clamp(0.5rem, 2vw, 1.25rem);
-  border-bottom: 1px solid var(--rule-soft);
-  transition: background 0.4s var(--ease);
-}
-
-.work-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--cc-yellow);
-  transform: scaleY(0);
-  transform-origin: top;
-  transition: transform 0.45s var(--ease);
-}
-
-.work-item:hover {
-  background:
-    radial-gradient(28rem 18rem at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.045), transparent 70%);
-}
-
-.work-item:hover::before {
-  transform: scaleY(1);
-}
-
-.work-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.year {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.chip {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.63rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  padding: 0.22rem 0.6rem;
-  border-radius: 100px;
-  border: 1px solid currentColor;
-  opacity: 0.85;
-}
-
-.chip-ship {
-  color: var(--cc-green);
-}
-
-.chip-research {
-  color: var(--cc-magenta);
-}
-
-.chip-win {
-  color: var(--cc-yellow);
-}
-
-.work-item h3 {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 118%;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: clamp(1.45rem, 1rem + 1.7vw, 2.35rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.7rem;
-  transition: transform 0.4s var(--ease);
-}
-
-.work-item:hover h3 {
-  transform: translateX(6px);
-}
-
-.work-item p {
-  color: var(--dim);
-  font-size: 0.98rem;
-  max-width: 62ch;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 1rem;
-}
-
-.tag {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.66rem;
-  letter-spacing: 0.1em;
-  color: var(--dim);
-  border: 1px solid var(--rule-soft);
-  border-radius: 3px;
-  padding: 0.25rem 0.55rem;
-  transition: border-color 0.25s, color 0.25s;
-}
-
-.work-item:hover .tag {
-  border-color: var(--rule);
-  color: var(--type);
-}
-
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.2rem;
-  margin-top: 1.3rem;
-}
-
-.link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--cc-cyan);
-  padding-bottom: 2px;
-  border-bottom: 1px solid rgba(79, 214, 232, 0.3);
-  transition: border-color 0.25s, gap 0.25s;
-}
-
-.link:hover {
-  border-color: var(--cc-cyan);
-  gap: 0.7rem;
-}
-
-.link svg {
-  width: 12px;
-  height: 12px;
-}
-
-/* per-project mini visuals */
-
-.viz {
-  position: relative;
-  border: 1px solid var(--rule-soft);
-  border-radius: 4px;
-  background: var(--ground-2);
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  display: grid;
-  place-items: center;
-  padding: 1rem;
-}
-
-.viz::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(230, 234, 240, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(230, 234, 240, 0.035) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
-
-/* — Griffin agent pipeline — */
-.viz-agents {
-  align-content: center;
-  place-items: stretch;
-  gap: 0.45rem;
-  grid-auto-rows: min-content;
-}
-
-.agent-row {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 5.6rem 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.agent-row u {
-  display: block;
-  height: 5px;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.07);
-  overflow: hidden;
-  text-decoration: none;
-}
-
-.agent-row u::after {
-  content: '';
-  display: block;
-  height: 100%;
-  width: var(--w, 50%);
-  border-radius: 100px;
-  background: var(--cc-cyan);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.9s var(--ease);
-  transition-delay: calc(var(--d, 0) * 1s);
-}
-
-.reveal.in .agent-row u::after {
-  transform: scaleX(1);
-}
-
-.agent-row b {
-  color: var(--type);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.agent-row.stage-llm u::after {
-  background: var(--cc-yellow);
-}
-
-.agent-row.stage-out u::after {
-  background: var(--cc-green);
-}
-
-/* — LiveSubs caption demo — */
-.viz-subs {
-  align-content: end;
-}
-
-.subline {
-  position: relative;
-  width: 100%;
-  text-align: center;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--cc-yellow);
-  background: rgba(0, 0, 0, 0.68);
-  border-radius: 2px;
-  padding: 0.45rem 0.6rem;
-  min-height: 3.2em;
-  display: grid;
-  align-items: center;
-  z-index: 1;
-}
-
-.subline small {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(230, 234, 240, 0.45);
-  margin-top: 0.25rem;
-}
-
-/* — pipeline bars — */
-.viz-pipe {
-  place-items: stretch;
-  align-content: center;
-  gap: 0.55rem;
-  grid-auto-rows: min-content;
-}
-
-.bar {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 5.6rem 1fr auto;
-  align-items: center;
-  gap: 0.6rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.bar u {
-  display: block;
-  height: 5px;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.07);
-  overflow: hidden;
-  text-decoration: none;
-}
-
-.bar u::after {
-  content: '';
-  display: block;
-  height: 100%;
-  width: var(--w, 50%);
-  border-radius: 100px;
-  background: var(--cc-magenta);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.9s var(--ease);
-  transition-delay: calc(var(--d, 0) * 1s);
-}
-
-.reveal.in .bar u::after {
-  transform: scaleX(1);
-}
-
-.bar b {
-  color: var(--type);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-/* — runtime comparison — */
-.viz-perf {
-  align-content: center;
-  place-items: stretch;
-}
-
-.perf {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 0.7rem;
-}
-
-.perf-row {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dim);
-}
-
-.perf-row span {
-  flex: 0 0 5.2rem;
-}
-
-.perf-row u {
-  height: 12px;
-  border-radius: 2px;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.1);
-  flex: 0 0 auto;
-  width: var(--w);
-  transform-origin: left;
-  transform: scaleX(0);
-  transition: transform 0.9s var(--ease) calc(var(--d, 0) * 1s);
-}
-
-.reveal.in .perf-row u {
-  transform: scaleX(1);
-}
-
-.perf-row.fast u {
-  background: var(--cc-yellow);
-}
-
-.perf-note {
-  position: relative;
-  z-index: 1;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
-  margin-top: 0.35rem;
-}
-
-/* ---------- experience timeline ---------- */
-
-.timeline {
-  position: relative;
-  display: grid;
-  gap: 0;
-}
-
-.tl-item {
-  position: relative;
-  display: grid;
-  grid-template-columns: 12rem minmax(0, 1fr);
-  gap: clamp(1rem, 3vw, 3rem);
-  padding: clamp(1.6rem, 3.5vw, 2.4rem) 0;
-  border-top: 1px solid var(--rule-soft);
-}
-
-.tl-item:last-child {
-  border-bottom: 1px solid var(--rule-soft);
-}
-
-.tl-when {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.tl-when em {
-  font-style: normal;
-  color: var(--cc-green);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.tl-item h3 {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 112%;
-  font-weight: 700;
-  font-size: clamp(1.15rem, 1rem + 0.9vw, 1.6rem);
-  letter-spacing: -0.015em;
-  line-height: 1.1;
-  margin-bottom: 0.25rem;
-}
-
-.tl-org {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  color: var(--cc-cyan);
-  margin-bottom: 0.85rem;
-  display: block;
-}
-
-.tl-item p {
-  color: var(--dim);
-  font-size: 0.97rem;
-  max-width: 62ch;
-}
-
-/* ---------- stack ---------- */
-
-.stack-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
-  gap: 1px;
-  background: var(--rule-soft);
-  border: 1px solid var(--rule-soft);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.stack-col {
-  background: var(--ground);
-  padding: 1.5rem 1.35rem;
-  transition: background 0.35s var(--ease);
-}
-
-.stack-col:hover {
-  background: var(--panel);
-}
-
-.stack-col h3 {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--cc-yellow);
-  margin-bottom: 1.1rem;
-  padding-bottom: 0.7rem;
-  border-bottom: 1px solid var(--rule-soft);
-}
-
-.stack-col li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem;
-  padding: 0.35rem 0;
-  font-size: 0.95rem;
-  color: var(--dim);
-  transition: color 0.25s var(--ease), transform 0.25s var(--ease);
-}
-
-.stack-col li::before {
-  content: '';
-  width: 4px;
-  height: 4px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--rule);
-  transform: translateY(-3px);
-  transition: background 0.25s;
-}
-
-.stack-col li:hover {
-  color: var(--type);
-  transform: translateX(3px);
-}
-
-.stack-col li:hover::before {
-  background: var(--cc-cyan);
-}
-
-/* ---------- credentials ---------- */
-
-.cred {
-  display: grid;
-  gap: 0;
-  border-top: 1px solid var(--rule-soft);
-}
-
-.cred li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
-  align-items: baseline;
-  padding: 1.1rem 0.25rem;
-  border-bottom: 1px solid var(--rule-soft);
-  transition: padding-left 0.3s var(--ease), background 0.3s var(--ease);
-}
-
-.cred li:hover {
-  padding-left: 0.9rem;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.cred strong {
-  font-weight: 600;
-  font-size: 1.02rem;
-}
-
-.cred span {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--faint);
-  text-align: right;
-}
-
-/* ---------- contact ---------- */
-
-#contact {
-  border-bottom: 1px solid var(--rule-soft);
-}
-
-.contact-head {
-  font-family: 'Archivo', sans-serif;
-  font-stretch: 124%;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: clamp(2rem, 0.8rem + 6vw, 4.8rem);
-  line-height: 0.92;
-  letter-spacing: -0.03em;
-  margin-bottom: 1.5rem;
-}
-
-.contact-head em {
-  font-style: normal;
-  color: var(--cc-yellow);
-}
-
-.mailto {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8rem;
-  font-family: 'DM Mono', monospace;
-  font-size: clamp(0.85rem, 0.75rem + 0.7vw, 1.25rem);
-  letter-spacing: 0.04em;
-  color: var(--type);
-  border-bottom: 1px solid var(--rule);
-  padding: 0.5rem 0;
-  margin-top: 1rem;
-  transition: color 0.3s var(--ease), border-color 0.3s var(--ease);
-}
-
-.mailto:hover {
-  color: var(--cc-yellow);
-  border-color: var(--cc-yellow);
-}
-
-.mailto svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.3s var(--ease);
-}
-
-.mailto:hover svg {
-  transform: translate(3px, -3px);
-}
-
-.socials {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 2.5rem;
-}
-
-.socials a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dim);
-  border: 1px solid var(--rule-soft);
-  border-radius: 100px;
-  padding: 0.55rem 1rem;
-  transition: all 0.28s var(--ease);
-}
-
-.socials a:hover {
-  color: var(--type);
-  border-color: var(--rule);
-  transform: translateY(-2px);
-}
-
-.socials svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* ---------- footer ---------- */
-
-footer {
-  position: relative;
-  z-index: 1;
-  padding: 2.5rem 0;
-}
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-  justify-content: space-between;
-  align-items: center;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.foot a:hover {
-  color: var(--cc-yellow);
-}
-
-/* ============================================================
-   SIGNATURE — the caption bar
-   ============================================================ */
-
-.ccbar {
-  position: fixed;
-  left: 50%;
-  bottom: 0.9rem;
-  transform: translateX(-50%);
-  z-index: 70;
-  width: min(var(--max), calc(100% - 2 * var(--gutter)));
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0.55rem 0.75rem 0.55rem 0.9rem;
-  background: rgba(9, 11, 14, 0.82);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.95);
-  transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
-}
-
-.ccbar[hidden] {
-  display: none;
-}
-
-body.cc-off .ccbar {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translate(-50%, 120%);
-}
-
-.cc-time {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.cc-time b {
-  color: var(--cc-yellow);
-  font-weight: 400;
-}
-
-.cc-text {
-  font-family: 'DM Mono', monospace;
-  font-size: clamp(0.7rem, 0.64rem + 0.25vw, 0.82rem);
-  line-height: 1.45;
-  color: var(--cc-yellow);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  min-height: 1.45em;
-}
-
-.cc-text::after {
-  content: '▍';
-  color: rgba(255, 210, 76, 0.7);
-  animation: blink 1.1s steps(1) infinite;
-}
-
-@keyframes blink {
-
-  0%,
-  49% {
-    opacity: 1;
-  }
-
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-
-.cc-toggle {
-  font-family: 'DM Mono', monospace;
-  font-size: 0.64rem;
-  letter-spacing: 0.14em;
-  color: var(--dim);
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.35rem 0.5rem;
-  cursor: pointer;
-  transition: all 0.25s var(--ease);
-}
-
-.cc-toggle:hover {
-  color: var(--cc-yellow);
-  border-color: var(--cc-yellow);
-}
-
-/* scrubber sits on the top edge of the bar */
-.scrub {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1px;
-  height: 3px;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px 4px 0 0;
-  overflow: hidden;
-}
-
-.scrub i {
-  display: block;
-  height: 100%;
-  width: 0%;
-  background: var(--cc-yellow);
-}
-
-/* restore button when captions are off */
-.cc-restore {
-  position: fixed;
-  right: var(--gutter);
-  bottom: 1rem;
-  z-index: 70;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.64rem;
-  letter-spacing: 0.14em;
-  color: var(--dim);
-  background: rgba(9, 11, 14, 0.85);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.45rem 0.6rem;
-  cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.3s var(--ease), visibility 0.3s, color 0.25s;
-}
-
-body.cc-off .cc-restore {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-}
-
-.cc-restore:hover {
-  color: var(--cc-yellow);
-  border-color: var(--cc-yellow);
-}
-
-/* ---------- reveal system ---------- */
-
-.reveal {
-  opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.75s var(--ease), transform 0.75s var(--ease);
-  transition-delay: calc(var(--i, 0) * 0.07s);
-}
-
-.reveal.in {
-  opacity: 1;
-  transform: none;
-}
-
-.mask {
-  display: block;
-  overflow: hidden;
-}
-
-.mask>span {
-  display: block;
-  transform: translateY(105%);
-  transition: transform 0.9s var(--ease);
-  transition-delay: calc(var(--i, 0) * 0.08s);
-}
-
-.mask.in>span {
-  transform: none;
-}
-
-/* ---------- responsive ---------- */
-
-@media (max-width: 980px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
-
-  .monitor {
-    max-width: 320px;
-    aspect-ratio: 9 / 11;
-  }
-
-  .about-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .work-item {
-    grid-template-columns: 1fr;
-  }
-
-  .viz {
-    order: -1;
-    max-width: 460px;
-  }
-
-  .tl-item {
-    grid-template-columns: 1fr;
-    gap: 0.9rem;
-  }
-}
-
-@media (max-width: 720px) {
-  .nav-links,
-  .nav-clock {
-    display: none;
-  }
-
-  .burger {
-    display: flex;
-  }
-
-  .track-head {
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-  }
-
-  .track-head .count {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .ccbar {
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.7rem;
-  }
-
-  .cc-toggle {
-    display: none;
-  }
-
-  .cred li {
-    grid-template-columns: 1fr;
-  }
-
-  .cred span {
-    text-align: left;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-
-  .reveal,
-  .mask>span {
-    opacity: 1;
-    transform: none;
-  }
-
-  .scanlines,
-  .grain,
-  .monitor .sweep {
-    display: none;
-  }
-}
-
-  </style>
-  <noscript>
-    <style>
-      .reveal, .mask>span { opacity: 1 !important; transform: none !important; }
-      .ccbar { display: none; }
-      body { padding-bottom: 3rem; }
-    </style>
-  </noscript>
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/universe.css">
 </head>
 
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">Skip to main content</a>
 
-  <div class="glow" aria-hidden="true"></div>
-  <div class="scanlines" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
+  <!-- Fixed Cosmic Starfield -->
+  <canvas id="starfield-canvas" aria-hidden="true"></canvas>
 
-  <!-- ============ NAV ============ -->
-  <header class="nav">
+  <!-- ==================== HEADER & NAVIGATION ==================== -->
+  <header class="nav-header">
     <div class="wrap nav-inner">
-      <a class="brand" href="#top">
-        <span class="rec" aria-hidden="true"></span> Diva
+      <a class="brand-solar" href="#hero">
+        <span class="sun-icon" aria-hidden="true"></span>
+        <span>Diwakar</span>
       </a>
-      <nav class="nav-links" aria-label="Sections">
-        <a href="#about">About</a>
-        <a href="#projects">Work</a>
-        <a href="#experience">Experience</a>
-        <a href="#skills">Stack</a>
+
+      <nav class="nav-links" aria-label="Celestial Sections">
+        <a href="#system-map">System Map</a>
+        <a href="#work">Work</a>
+        <a href="#experience">Mission Log</a>
+        <a href="#stack">Stack</a>
+        <a href="#credentials">Credentials</a>
         <a href="#contact">Contact</a>
       </nav>
-      <span class="nav-clock" id="clock" aria-hidden="true">00:00:00</span>
-      <button class="burger" id="burger" type="button" aria-label="Open menu" aria-expanded="false"
-        aria-controls="drawer">
-        <span></span><span></span><span></span>
-      </button>
+
+      <div class="nav-telemetry">
+        <span class="clock-badge" id="ist-clock" aria-label="Local time in Visakhapatnam, India">19:30:00 IST</span>
+        <button class="motion-toggle-btn" id="pause-motion-btn" type="button" aria-label="Pause orbital motion">
+          <span class="icon" aria-hidden="true">⏸</span>
+          <span class="label">Pause Motion</span>
+        </button>
+        <button class="nav-burger" id="mobile-nav-toggle" type="button" aria-label="Open celestial navigation"
+          aria-expanded="false" aria-controls="mobile-nav-drawer">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <div class="drawer" id="drawer">
-    <a href="#about">About<span>01</span></a>
-    <a href="#projects">Work<span>02</span></a>
-    <a href="#experience">Experience<span>03</span></a>
-    <a href="#skills">Stack<span>04</span></a>
-    <a href="#certifications">Credentials<span>05</span></a>
-    <a href="#contact">Contact<span>06</span></a>
+  <!-- Mobile Navigation Drawer -->
+  <div class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+    <a href="#hero">Sun Core <span>00</span></a>
+    <a href="#system-map">System Map <span>01</span></a>
+    <a href="#work">Work &amp; Moons <span>02</span></a>
+    <a href="#experience">Mission Log <span>03</span></a>
+    <a href="#stack">Planetary Stack <span>04</span></a>
+    <a href="#credentials">Credentials <span>05</span></a>
+    <a href="#contact">Transmission <span>06</span></a>
   </div>
 
   <main id="main">
 
-    <!-- ============ HERO ============ -->
-    <section class="hero" id="top"
-      data-caption="Diwakar Venkat Peddada — a software engineer in India who builds real-time tools and research systems.">
-      <div class="wrap hero-grid">
-        <div>
-          <p class="status reveal"><i aria-hidden="true"></i> AI Developer Intern</p>
+    <!-- ==================== HERO: THE SUN AT THE CENTER ==================== -->
+    <section class="hero-universe" id="hero">
+      <div class="wrap">
+        <div class="hero-sun-container">
+          <div class="hero-solar-badge">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span>Solar Protocol // Visakhapatnam, India</span>
+          </div>
 
-          <h1>
-            <span class="line mask"><span>Diwakar</span></span>
-            <span class="line mask" style="--i:1"><span>Venkat</span></span>
-            <span class="line mask" style="--i:2"><span><em>Peddada</em></span></span>
-          </h1>
+          <h1 class="hero-name">Diwakar Venkat Peddada</h1>
 
-          <p class="hero-role"><span aria-hidden="true">▍</span><span class="swap" id="role">Software engineer</span></p>
+          <p class="hero-positioning">
+            I build software that keeps up with live things — speech turning into subtitles,
+            papers turning into evidence, and agents that remember decisions from six sessions ago.
+          </p>
 
-          <p class="lead reveal" style="--i:1">I build software that has to keep up with something happening live —
-            speech turning into subtitles, papers turning into evidence, AI applications, and interfaces that stay quick under load.
-            Currently studying computer science at Andhra University.</p>
+          <div class="hero-meta-status">
+            <span>Status: <em>AI developer intern at Aegion Dynamic Solutions</em></span>
+            <span aria-hidden="true">·</span>
+            <span>Location: <em>Visakhapatnam, India</em></span>
+            <span aria-hidden="true">·</span>
+            <span>Origin: <em>Andhra University CS '28</em></span>
+          </div>
 
-          <div class="hero-actions reveal" style="--i:2">
-            <a class="btn" href="#projects"><span>See the work</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M5 12h14M13 6l6 6-6 6" />
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-magnetic" href="#work">
+              <span>See the work</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"
+                aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </a>
-            <a class="btn btn-ghost" href="mailto:diwa.p2007@gmail.com"><span>Email me</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <a class="btn btn-secondary btn-magnetic" href="mailto:diwa.p2007@gmail.com">
+              <span>Email me</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"
+                aria-hidden="true">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
                 <path d="m3 7 9 6 9-6" />
               </svg>
             </a>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div class="reveal" style="--i:1">
-          <div class="monitor">
-            <div class="monogram" id="monogram" aria-hidden="true">
-              <i></i><i></i>
-              <b>D</b>
+    <!-- ==================== SYSTEM MAP & CASE STUDIES ==================== -->
+    <section class="section-system-map" id="system-map">
+      <div class="wrap" id="work-system-container">
+        <div class="section-head">
+          <div>
+            <span class="section-tag">Sector 01 // Interactive star chart</span>
+            <h2 class="section-title">The Personal Universe</h2>
+          </div>
+          <span class="section-count">5 Language Planets · 8 Project Moons</span>
+        </div>
+
+        <p class="text-dim" style="max-width: 68ch; margin-bottom: 2rem;">
+          Languages are planets. Projects are moons. I am the sun at the center. Select any celestial body to focus the
+          camera, lock targeting coordinates, and retrieve its technical probe readout.
+        </p>
+
+        <!-- Viewport for Canvas 2D Celestial Engine -->
+        <div class="system-map-viewport" id="system-map-viewport">
+          <canvas id="orbit-canvas" aria-hidden="true"></canvas>
+
+          <!-- Synchronized Accessible HTML Overlay -->
+          <div class="orbit-interactive-overlay" id="orbit-interactive-overlay" role="region"
+            aria-label="Celestial interactive body selector"></div>
+
+          <!-- HUD Telemetry Footer -->
+          <div class="map-telemetry-hud" aria-hidden="true">
+            <div class="map-hud-legend">
+              <span><i class="dot-planet"></i> Language Planet</span>
+              <span><i class="dot-moon"></i> Project Moon</span>
             </div>
-            <video id="chroma-video" autoplay loop muted playsinline preload="auto" disablePictureInPicture
-              aria-hidden="true">
-              <source src="assets/chroma-keyed-video.webm" type="video/webm">
-            </video>
-            <canvas id="chroma-canvas" aria-hidden="true"></canvas>
+            <div>
+              <span>SIMULATION: 60 FPS KEPLERIAN DRIFT</span>
+            </div>
+          </div>
+        </div>
 
-            <div class="sweep" aria-hidden="true"></div>
-            <span class="osd osd-tl"><span class="rec" aria-hidden="true"></span> REC</span>
-            <span class="osd osd-tr">CAM 01</span>
-            <span class="osd osd-bl">Visakhapatnam, IN</span>
+        <!-- ==================== FOUR CASE STUDIES ==================== -->
+        <div class="work-case-studies" id="work">
+          <div class="section-head" style="margin-top: 3.5rem;">
+            <div>
+              <span class="section-tag">Sector 01-B // Case Studies</span>
+              <h2 class="section-title">The Four Major Moons</h2>
+            </div>
+            <span class="section-count">4 Production Case Studies</span>
+          </div>
 
-            <button class="audio-btn" id="audio-btn" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M11 5 6 9H3v6h3l5 4V5Z" />
-                <path d="M16 9a4 4 0 0 1 0 6" />
-              </svg>
-              <span>Play audio</span>
-            </button>
+          <div class="case-study-deck">
+
+            <!-- Case Study 1: LiveSubs -->
+            <article class="case-card pinned-case-card" data-case-id="livesubs" id="case-livesubs">
+              <div>
+                <div class="case-card-meta">
+                  <span class="orbit-pill">Orbit 2 · C# / .NET</span>
+                  <span class="status-pill">Shipped // Single .exe</span>
+                </div>
+                <h3>LiveSubs</h3>
+                <p class="case-problem">Problem: Speech in calls and video streams moves faster than users can read or translate using conventional transcription windows.</p>
+                <p class="case-description">
+                  Captures Windows Live Captions in real time, translates recognized speech through 9+ API backends
+                  (Google, DeepL, OpenAI, Ollama, LM Studio), and renders a responsive, always-on-top customizable subtitle bar over any active window, lecture, or call.
+                </p>
+                <div class="case-metric">
+                  <b>Measurable Detail:</b> 9+ translation backends supported; self-contained single .exe (Windows x64) with zero external runtime install; settings persisted in %AppData%\LiveSubs\setting.json; optional SQLite translation history database.
+                </div>
+                <div class="tag-list">
+                  <span class="tech-tag">C#</span>
+                  <span class="tech-tag">.NET 8</span>
+                  <span class="tech-tag">WPF</span>
+                  <span class="tech-tag">Windows Live Captions API</span>
+                  <span class="tech-tag">SQLite</span>
+                  <span class="tech-tag">Always-On-Top</span>
+                </div>
+                <div class="case-links">
+                  <a class="case-link" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
+                    <span>Source Repository</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                  </a>
+                  <a class="case-link" href="https://github.com/Diva143V/LiveSubs/releases" target="_blank" rel="noopener noreferrer">
+                    <span>Releases &amp; Download</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+                  </a>
+                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="livesubs">
+                    <span>Lock Orbit Reticle</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="case-telemetry-box" aria-hidden="true">
+                <div class="telemetry-row">
+                  <span class="telemetry-label">DESIGNATION</span>
+                  <span class="telemetry-val">LIVESUBS-V1</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PARENT BODY</span>
+                  <span class="telemetry-val">C# / .NET (Orbit 2)</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">TRANSLATION APIS</span>
+                  <span class="telemetry-val">9 Built-in Providers</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PACKAGING</span>
+                  <span class="telemetry-val">Self-Contained x64 .exe</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">STORAGE</span>
+                  <span class="telemetry-val">%AppData% / SQLite</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Case Study 2: Griffin Bio -->
+            <article class="case-card pinned-case-card" data-case-id="griffin" id="case-griffin">
+              <div>
+                <div class="case-card-meta">
+                  <span class="orbit-pill">Orbit 1 · Python</span>
+                  <span class="status-pill">Active // RAG Pipeline</span>
+                </div>
+                <h3>Griffin Bio</h3>
+                <p class="case-problem">Problem: Biomedical research papers are scattered across fragmented silos with conflicting clinical claims that take weeks to manually synthesize.</p>
+                <p class="case-description">
+                  A scientific evidence synthesis and contradiction workbench. Collects literature and biological data from 10 modular source collectors, merges and deduplicates them, generates sentence embeddings, and executes an automated Mixture-of-LLMs pipeline for claim extraction, Oxford evidence ranking, contradiction detection, and consensus synthesis surfaced through a Reflex web dashboard.
+                </p>
+                <div class="case-metric">
+                  <b>Measurable Detail:</b> 10 modular source collectors (PubMed, Europe PMC, Semantic Scholar, OpenAlex, ClinicalTrials, bioRxiv, ChEMBL, UniProt, PubChem, dbSNP); Oxford Levels of Evidence ranking; 7 specialized reasoning agents with automated priority fallback.
+                </div>
+                <div class="tag-list">
+                  <span class="tech-tag">Python</span>
+                  <span class="tech-tag">ChromaDB</span>
+                  <span class="tech-tag">Ollama</span>
+                  <span class="tech-tag">Graph RAG</span>
+                  <span class="tech-tag">Reflex</span>
+                  <span class="tech-tag">Mixture of LLMs</span>
+                </div>
+                <div class="case-links">
+                  <a class="case-link" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
+                    <span>Source Repository</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                  </a>
+                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="griffin">
+                    <span>Lock Orbit Reticle</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="case-telemetry-box" aria-hidden="true">
+                <div class="telemetry-row">
+                  <span class="telemetry-label">DESIGNATION</span>
+                  <span class="telemetry-val">GRIFFIN-BIO</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PARENT BODY</span>
+                  <span class="telemetry-val">Python (Orbit 1)</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">COLLECTORS</span>
+                  <span class="telemetry-val">10 Modular Sources</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">EVIDENCE RANKING</span>
+                  <span class="telemetry-val">Oxford Clinical Levels</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">AGENT REASONING</span>
+                  <span class="telemetry-val">7 Specialized Agents</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Case Study 3: Knox -->
+            <article class="case-card pinned-case-card" data-case-id="knox" id="case-knox">
+              <div>
+                <div class="case-card-meta">
+                  <span class="orbit-pill">Orbit 3 · Rust</span>
+                  <span class="status-pill">Shipped // v2.1.0</span>
+                </div>
+                <h3>Knox</h3>
+                <p class="case-problem">Problem: AI coding agents suffer from catastrophic amnesia, losing architectural rationale, decisions, and constraints across sessions and tool switches.</p>
+                <p class="case-description">
+                  A persistent, cross-platform knowledge graph and Model Context Protocol (MCP) server built in Rust. It captures architectural decisions, pre-flight guardrail constraints, and developer human edits across disparate coding sessions (Antigravity, Cursor, Claude Code, Gemini CLI), giving AI agents long-term causal memory.
+                </p>
+                <div class="case-metric">
+                  <b>Measurable Detail:</b> 8 focused MCP tools (knox_begin, knox_context, knox_check, knox_trace, knox_record, knox_handoff, knox_ask, knox_update); tool definition footprint budgeted &le; 850 tokens; 50-pair calibrated guardrail with 0.60 overlap threshold; 5.46 MB LZMA setup wizard.
+                </div>
+                <div class="tag-list">
+                  <span class="tech-tag">Rust 1.85+</span>
+                  <span class="tech-tag">SQLite WAL &amp; FTS5</span>
+                  <span class="tech-tag">PetGraph</span>
+                  <span class="tech-tag">Tauri v2</span>
+                  <span class="tech-tag">React 19</span>
+                  <span class="tech-tag">Tailwind v4</span>
+                  <span class="tech-tag">D3 Force Physics</span>
+                </div>
+                <div class="case-links">
+                  <a class="case-link" href="https://github.com/Diva143V/Knox" target="_blank" rel="noopener noreferrer">
+                    <span>Source Repository</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                  </a>
+                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="knox">
+                    <span>Lock Orbit Reticle</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="case-telemetry-box" aria-hidden="true">
+                <div class="telemetry-row">
+                  <span class="telemetry-label">DESIGNATION</span>
+                  <span class="telemetry-val">KNOX-CORE-V2</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PARENT BODY</span>
+                  <span class="telemetry-val">Rust (Orbit 3)</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">MCP TOOLS</span>
+                  <span class="telemetry-val">8 Standard Stdio Tools</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">TOOL FOOTPRINT</span>
+                  <span class="telemetry-val">&le; 850 Tokens Budgeted</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">DESKTOP GUI</span>
+                  <span class="telemetry-val">Tauri v2 / React 19 / D3</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- Case Study 4: SyGriffin -->
+            <article class="case-card pinned-case-card" data-case-id="sygriffin" id="case-sygriffin">
+              <div>
+                <div class="case-card-meta">
+                  <span class="orbit-pill">Orbit 1 · Python</span>
+                  <span class="status-pill">Active // Scientific MVP</span>
+                </div>
+                <h3>SyGriffin</h3>
+                <p class="case-problem">Problem: Identifying clinically viable neoantigen candidates from raw tumor sequencing requires complex, opaque computational biology pipelines.</p>
+                <p class="case-description">
+                  A CLI-first AI bioinformatics platform and life-sciences research companion that parses tumor VCF files, predicts vaccine-relevant peptide targets, ranks candidates with transparent scoring, and preserves reproducible audit records for cancer vaccine research.
+                </p>
+                <div class="case-metric">
+                  <b>Measurable Detail:</b> Predicts peptide candidates matched to specific HLA alleles (e.g. HLA-A*02:01, melanoma, GRCh37); automated RNA-seq run validation checking matrix structure, sample-ID alignment, replicate counts, and batch-confounding.
+                </div>
+                <div class="tag-list">
+                  <span class="tech-tag">Python 3.11</span>
+                  <span class="tech-tag">Bun 1.3+</span>
+                  <span class="tech-tag">VEP</span>
+                  <span class="tech-tag">MHCflurry</span>
+                  <span class="tech-tag">uv</span>
+                  <span class="tech-tag">pytest</span>
+                  <span class="tech-tag">mypy</span>
+                </div>
+                <div class="case-links">
+                  <a class="case-link" href="https://github.com/Diva143V/SyGriffin" target="_blank" rel="noopener noreferrer">
+                    <span>Source Repository</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+                  </a>
+                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="sygriffin">
+                    <span>Lock Orbit Reticle</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="case-telemetry-box" aria-hidden="true">
+                <div class="telemetry-row">
+                  <span class="telemetry-label">DESIGNATION</span>
+                  <span class="telemetry-val">SYGRIFFIN-CLI</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PARENT BODY</span>
+                  <span class="telemetry-val">Python (Orbit 1)</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">MUTATION INPUT</span>
+                  <span class="telemetry-val">Tumor VCF &amp; HLA Alleles</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">PREDICTOR ENGINES</span>
+                  <span class="telemetry-val">VEP / MHCflurry</span>
+                </div>
+                <div class="telemetry-row">
+                  <span class="telemetry-label">QUALITY CHECKS</span>
+                  <span class="telemetry-val">Ruff / Mypy / Pytest</span>
+                </div>
+              </div>
+            </article>
+
+          </div>
+
+          <!-- Secondary Moons Grid -->
+          <div class="secondary-projects-grid">
+            <div class="minor-card">
+              <span class="case-card-meta"><span class="orbit-pill">Orbit 1 · Python</span></span>
+              <h4>Polaris (Kg-Library-API)</h4>
+              <p>Modular, storage-agnostic Knowledge Graph library with deterministic Python graph traversal (&lt; 5ms) and hybrid Think-on-Graph (ToG) reasoning API.</p>
+              <a class="case-link" href="https://github.com/Diva143V/Kg-Library-API" target="_blank" rel="noopener noreferrer">
+                <span>View Repository</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+            </div>
+
+            <div class="minor-card">
+              <span class="case-card-meta"><span class="orbit-pill">Orbit 1 · Python</span></span>
+              <h4>Sita (Metformin Pipeline)</h4>
+              <p>Precursor biomedical evidence pipeline aggregating PubMed, Europe PMC, and Semantic Scholar with claim extraction and contradiction detection.</p>
+              <a class="case-link" href="https://github.com/Diva143V/Sita" target="_blank" rel="noopener noreferrer">
+                <span>View Repository</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+            </div>
+
+            <div class="minor-card">
+              <span class="case-card-meta"><span class="orbit-pill">Orbit 4 · TypeScript</span></span>
+              <h4>myselfdiva (Portfolio Universe)</h4>
+              <p>Interactive celestial portfolio rebuilt from scratch. Real canvas 2D orbital simulation, GSAP ScrollTrigger, and WCAG accessibility.</p>
+              <a class="case-link" href="https://github.com/Diva143V/myselfdiva" target="_blank" rel="noopener noreferrer">
+                <span>View Repository</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ============ ABOUT ============ -->
-    <section class="track" id="about"
-      data-caption="Computer science at Andhra University, class of 2028. Front-end intern, now building systems end to end.">
-      <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 01</span>
-          <h2>About</h2>
-          <span class="count">Andhra University · CS '28</span>
+    <!-- ==================== PROBE TELEMETRY MODAL ==================== -->
+    <dialog id="probe-modal" closedby="any" aria-labelledby="probe-title">
+      <div class="probe-modal-head">
+        <div class="probe-header-info">
+          <span class="probe-classification" id="probe-classification">CELESTIAL BODY READOUT</span>
+          <h3 class="probe-title" id="probe-title">Body Name</h3>
+          <span class="font-mono text-faint" style="font-size: 0.68rem;" id="probe-coordinates">SECTOR // ORBIT 1</span>
+        </div>
+        <button type="button" class="probe-close-btn" aria-label="Close telemetry readout">✕ Close</button>
+      </div>
+
+      <div class="probe-body">
+        <div>
+          <h4 class="probe-section-title">Problem Statement</h4>
+          <p class="probe-problem-text" id="probe-problem"></p>
         </div>
 
-        <div class="about-grid">
-          <div class="about-body reveal">
-            <p class="statement">I like problems where the answer has to arrive <b>while you are still watching</b> —
-              captions that keep pace with a speaker, a pipeline that reads a few thousand papers and tells you where
-              they disagree.</p>
-            <p>I started on the front end, interning at Aegion Dynamic Solutions, where I rebuilt React interfaces and
-              tightened the handoff between the UI and the API. That work taught me most of what I know about
-              measuring something before claiming it got faster.</p>
-            <p>Since then I've been working further down the stack: Windows overlays in C++ and Python, embeddings and
-              retrieval for research data, building AI applications, and cloud fundamentals through Google Cloud and JPMorgan Chase's engineering
-              simulation. Outside of code, I moderate a 185,000-member community for the game Mecha Break, which is
-              where I learned to write for people who have not read the manual.</p>
-          </div>
+        <div>
+          <h4 class="probe-section-title">Architectural Solution</h4>
+          <p class="probe-action-text" id="probe-action"></p>
+        </div>
 
-          <div class="spec reveal" style="--i:1">
-            <div class="spec-head">
-              <span class="mono">Details</span>
-              <span class="mono">/ 06</span>
-            </div>
-            <dl>
-              <dt>Based in</dt>
-              <dd>Visakhapatnam, India</dd>
-              <dt>Studying</dt>
-              <dd>Computer science, <b>2028</b></dd>
-              <dt>Focus</dt>
-              <dd>Real-time tools &amp; AI apps</dd>
-              <dt>Languages</dt>
-              <dd>C++, Python, Java, JS</dd>
-              <dt>Community</dt>
-              <dd><b>185,000+</b> members moderated</dd>
-              <dt>Status</dt>
-              <dd>AI developer intern</dd>
-            </dl>
-          </div>
+        <div>
+          <h4 class="probe-section-title">Measurable Empirical Detail</h4>
+          <div class="probe-metric-box" id="probe-metric"></div>
+        </div>
+
+        <div>
+          <h4 class="probe-section-title">Core Stack &amp; Technologies</h4>
+          <div class="probe-tag-row" id="probe-stack"></div>
+        </div>
+
+        <div class="probe-actions">
+          <a class="btn btn-primary" id="probe-source-link" href="#" target="_blank" rel="noopener noreferrer">
+            <span>Source Code</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+          </a>
+          <a class="btn btn-secondary" id="probe-release-link" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            <span>Releases / Download</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+          </a>
         </div>
       </div>
-    </section>
+    </dialog>
 
-    <!-- ============ WORK ============ -->
-    <section class="track" id="projects"
-      data-caption="Four projects: a scientific evidence workbench, a live subtitle overlay, a medical evidence pipeline, and a hackathon-winning solver.">
+    <!-- ==================== EXPERIENCE: MISSION LOG ==================== -->
+    <section class="section-experience" id="experience">
       <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 02</span>
-          <h2>Work</h2>
-          <span class="count">4 projects</span>
+        <div class="section-head">
+          <div>
+            <span class="section-tag">Sector 02 // Flight Path</span>
+            <h2 class="section-title">Mission Log</h2>
+          </div>
+          <span class="section-count">3 Tracked Missions</span>
         </div>
 
-        <div class="work">
+        <p class="text-dim" style="max-width: 65ch;">
+          Chronological flight path across production AI engineering, interface performance optimization, and large-scale live community moderation.
+        </p>
 
-          <!-- Griffin -->
-          <article class="work-item reveal">
-            <div>
-              <div class="work-meta">
-                <span class="year">2026</span>
-                <span class="chip chip-research">AI / Research</span>
-              </div>
-              <h3>Griffin Bio</h3>
-              <p>A scientific evidence synthesis &amp; contradiction workbench. Collects papers and biomedical data from
-                10 modular source collectors (PubMed, Europe PMC, Semantic Scholar, OpenAlex, ClinicalTrials, bioRxiv,
-                ChEMBL, UniProt, PubChem, dbSNP), merges and deduplicates them, generates embeddings, and runs a
-                Mixture-of-LLMs pipeline for claim extraction, evidence ranking, contradiction detection, and
-                consensus synthesis — all surfaced through a live Reflex web dashboard.</p>
-              <div class="tags">
-                <span class="tag">Python</span>
-                <span class="tag">RAG</span>
-                <span class="tag">Mixture of LLMs</span>
-                <span class="tag">ChromaDB</span>
-                <span class="tag">Ollama</span>
-                <span class="tag">Reflex</span>
-                <span class="tag">AI Agents</span>
-              </div>
-              <div class="links">
-                <a class="link" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path
-                      d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.63-2.8 5.65-5.48 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
-                  </svg> Source
-                </a>
-              </div>
-            </div>
-            <div class="viz viz-agents" aria-hidden="true">
-              <div class="agent-row" style="--w:100%;--d:0"><span>10 Sources</span><u></u><b>collected</b></div>
-              <div class="agent-row" style="--w:78%;--d:.1"><span>Merge</span><u></u><b>deduplicated</b></div>
-              <div class="agent-row" style="--w:60%;--d:.2"><span>Embeddings</span><u></u><b>ChromaDB</b></div>
-              <div class="agent-row stage-llm" style="--w:48%;--d:.3"><span>Claims</span><u></u><b>LLM extract</b></div>
-              <div class="agent-row stage-llm" style="--w:36%;--d:.4"><span>Evidence</span><u></u><b>ranked</b></div>
-              <div class="agent-row stage-llm" style="--w:26%;--d:.5"><span>Conflicts</span><u></u><b>detected</b></div>
-              <div class="agent-row stage-out" style="--w:18%;--d:.6"><span>Synthesis</span><u></u><b>dashboard</b></div>
-            </div>
+        <div class="flight-path">
+          <div class="flight-path-line" aria-hidden="true"></div>
+
+          <!-- Role 1: Current -->
+          <article class="flight-beacon active-beacon">
+            <span class="beacon-blip" aria-hidden="true"></span>
+            <p class="beacon-date">Jul 2026 — Present · Current Mission</p>
+            <h3 class="beacon-role">AI Developer Intern</h3>
+            <span class="beacon-org">Aegion Dynamic Solutions</span>
+            <p class="beacon-desc">
+              Building AI-powered applications and integrating machine learning models into production workflows.
+              Working on intelligent automation, LLM-based tooling, and data-driven features that ship directly into the company's products.
+            </p>
           </article>
 
-          <!-- LiveSubs -->
-          <article class="work-item reveal">
-            <div>
-              <div class="work-meta">
-                <span class="year">2026</span>
-                <span class="chip chip-ship">Shipped</span>
-              </div>
-              <h3>LiveSubs</h3>
-              <p>A subtitle and translation overlay for Windows. It listens to Live Captions, translates the recognised
-                speech, and draws clean always-on-top subtitles over any app or video — a call, a stream, a lecture
-                recording. Multiple translation providers, adjustable overlay styling, optional transcript logging, and
-                per-user settings kept in %AppData%.</p>
-              <div class="tags">
-                <span class="tag">Windows</span>
-                <span class="tag">Speech to text</span>
-                <span class="tag">Translation</span>
-                <span class="tag">Always-on-top overlay</span>
-              </div>
-              <div class="links">
-                <a class="link" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path
-                      d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.63-2.8 5.65-5.48 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
-                  </svg> Source
-                </a>
-                <a class="link" href="https://github.com/Diva143V/LiveSubs/releases" target="_blank"
-                  rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16" />
-                  </svg> Download
-                </a>
-              </div>
-            </div>
-            <div class="viz viz-subs" aria-hidden="true">
-              <div class="subline" id="subs-demo">
-                <span>The meeting starts in five minutes.</span>
-                <small>EN → EN · source</small>
-              </div>
-            </div>
+          <!-- Role 2: Frontend -->
+          <article class="flight-beacon">
+            <span class="beacon-blip" aria-hidden="true"></span>
+            <p class="beacon-date">Aug — Oct 2025 · Completed</p>
+            <h3 class="beacon-role">Front-End Developer Intern</h3>
+            <span class="beacon-org">Aegion Dynamic Solutions</span>
+            <p class="beacon-desc">
+              Built and reworked responsive interfaces in React and JavaScript, and collaborated closely with the backend team on API contracts
+              so screens stopped waiting on data they did not need. Profiling re-renders, eliminating layout shifts, and measuring performance before claiming improvements.
+            </p>
           </article>
 
-          <!-- Sita -->
-          <article class="work-item reveal">
-            <div>
-              <div class="work-meta">
-                <span class="year">2025</span>
-                <span class="chip chip-research">Research</span>
-              </div>
-              <h3>Metformin &amp; breast cancer pipeline</h3>
-              <p>An end-to-end evidence pipeline built around one question. It pulls papers from PubMed, Europe PMC and
-                Semantic Scholar, merges and de-duplicates them, filters for topic, embeds the abstracts for semantic
-                retrieval, extracts individual claims, ranks them by strength of evidence, flags contradictions between
-                studies, and renders the result as a synthesis dashboard.</p>
-              <div class="tags">
-                <span class="tag">Python</span>
-                <span class="tag">Embeddings</span>
-                <span class="tag">Semantic retrieval</span>
-                <span class="tag">Claim extraction</span>
-              </div>
-              <div class="links">
-                <a class="link" href="https://github.com/Diva143V/Sita" target="_blank" rel="noopener noreferrer">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                    <path
-                      d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.63-2.8 5.65-5.48 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
-                  </svg> Source
-                </a>
-              </div>
-            </div>
-            <div class="viz viz-pipe" aria-hidden="true">
-              <div class="bar" style="--w:100%;--d:0"><span>Collected</span><u></u><b>3 sources</b></div>
-              <div class="bar" style="--w:72%;--d:.12"><span>De-duplicated</span><u></u><b>merged</b></div>
-              <div class="bar" style="--w:54%;--d:.24"><span>On topic</span><u></u><b>filtered</b></div>
-              <div class="bar" style="--w:38%;--d:.36"><span>Claims</span><u></u><b>extracted</b></div>
-              <div class="bar" style="--w:22%;--d:.48"><span>Conflicts</span><u></u><b>flagged</b></div>
-            </div>
-          </article>
-
-          <!-- HackMe -->
-          <article class="work-item reveal">
-            <div>
-              <div class="work-meta">
-                <span class="year">2024</span>
-                <span class="chip chip-win">First place</span>
-              </div>
-              <h3>HackMe solver</h3>
-              <p>The winning entry for the HackMe problem statement. The naive approach ran well past the time limit, so
-                the work was in the data structures: reshaping the search, cutting repeated passes, and getting the
-                runtime down to something the judges could actually wait for.</p>
-              <div class="tags">
-                <span class="tag">C++</span>
-                <span class="tag">Data structures</span>
-                <span class="tag">Optimisation</span>
-              </div>
-            </div>
-            <div class="viz viz-perf" aria-hidden="true">
-              <div class="perf">
-                <div class="perf-row" style="--w:82%;--d:0"><span>Naive</span><u></u></div>
-                <div class="perf-row fast" style="--w:21%;--d:.3"><span>Shipped</span><u></u></div>
-                <p class="perf-note">Same input, same machine</p>
-              </div>
-            </div>
-          </article>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ EXPERIENCE ============ -->
-    <section class="track" id="experience"
-      data-caption="AI developer intern at Aegion Dynamic Solutions. Previously front-end intern there. Moderator for a 185,000-member game community.">
-      <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 03</span>
-          <h2>Experience</h2>
-          <span class="count">3 roles</span>
-        </div>
-
-        <div class="timeline">
-          <article class="tl-item reveal">
-            <div class="tl-when">
-              <span>Jul 2026 — present</span>
-              <span><em><i class="rec" aria-hidden="true"></i> Current</em></span>
-            </div>
-            <div>
-              <h3>AI developer intern</h3>
-              <span class="tl-org">Aegion Dynamic Solutions</span>
-              <p>Building AI-powered applications and integrating machine learning models into production workflows.
-                Working on intelligent automation, LLM-based tooling, and data-driven features that ship directly
-                into the company's products.</p>
-            </div>
-          </article>
-          <article class="tl-item reveal">
-            <div class="tl-when">
-              <span>Aug — Oct 2025</span>
-              <span>Internship</span>
-            </div>
-            <div>
-              <h3>Front-end developer intern</h3>
-              <span class="tl-org">Aegion Dynamic Solutions</span>
-              <p>Built and reworked responsive interfaces in React and JavaScript, and worked alongside the backend
-                team on API integration so screens stopped waiting on data they didn't need. Spent a good share of the
-                internship on performance: trimming re-renders, fixing layout shift, and making the UI hold up on
-                slower devices.</p>
-            </div>
-          </article>
-
-          <article class="tl-item reveal">
-            <div class="tl-when">
-              <span>Mar 2024 — Jul 2025</span>
-              <span>Completed</span>
-            </div>
-            <div>
-              <h3>Discord moderator</h3>
-              <span class="tl-org">Mecha Break — Amazing Seasun Games</span>
-              <p>Moderating a 185,000-member server for a live game: keeping conversation usable at that scale, running
-                feedback threads on game modes and features, and summarising what players actually reported back to the
-                developers. Also handled community research around launches and promotions.</p>
-            </div>
+          <!-- Role 3: Discord Mod -->
+          <article class="flight-beacon">
+            <span class="beacon-blip" aria-hidden="true"></span>
+            <p class="beacon-date">Mar 2024 — Jul 2025 · Completed</p>
+            <h3 class="beacon-role">Discord Moderator</h3>
+            <span class="beacon-org">Mecha Break — Amazing Seasun Games (185,000 Members)</span>
+            <p class="beacon-desc">
+              Moderated a 185,000-member community for a live game: keeping conversation usable at scale, triaging feedback threads on game modes,
+              and turning a firehose of player reports into structured, actionable telemetry for the development team.
+            </p>
           </article>
         </div>
       </div>
     </section>
 
-    <!-- ============ STACK ============ -->
-    <section class="track" id="skills"
-      data-caption="C++, Python, Java and JavaScript, React on the front end, and the retrieval tooling around machine learning.">
+    <!-- ==================== PLANETARY STACK MATRIX ==================== -->
+    <section class="section-stack" id="stack">
       <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 04</span>
-          <h2>Stack</h2>
-          <span class="count">What I reach for</span>
+        <div class="section-head">
+          <div>
+            <span class="section-tag">Sector 03 // Planetary Matrix</span>
+            <h2 class="section-title">The Five Orbits</h2>
+          </div>
+          <span class="section-count">Languages Linked to Real Proof</span>
         </div>
 
-        <div class="stack-grid reveal">
-          <div class="stack-col">
-            <h3>Languages</h3>
-            <ul>
-              <li>C++</li>
-              <li>Python</li>
-              <li>Java</li>
-              <li>JavaScript</li>
-              <li>C</li>
-            </ul>
-          </div>
-          <div class="stack-col">
-            <h3>Interfaces</h3>
-            <ul>
-              <li>React</li>
-              <li>HTML &amp; CSS</li>
-              <li>Canvas &amp; WebGL</li>
-              <li>Accessibility</li>
-            </ul>
-          </div>
-          <div class="stack-col">
-            <h3>ML &amp; AI</h3>
-            <ul>
-              <li>AI Applications</li>
-              <li>LLM APIs</li>
-              <li>Embeddings</li>
-              <li>Semantic search</li>
-              <li>Data pipelines</li>
-            </ul>
-          </div>
-          <div class="stack-col">
-            <h3>Platform</h3>
-            <ul>
-              <li>Google Cloud</li>
-              <li>Git &amp; GitHub</li>
-              <li>Linux</li>
-              <li>Windows APIs</li>
-            </ul>
-          </div>
+        <p class="text-dim" style="max-width: 65ch;">
+          Just like the GitHub planets table, each language in my stack corresponds to a real orbit and is proven by concrete, shipped software.
+        </p>
+
+        <div class="stack-orbit-table">
+          <!-- Orbit 1: Python -->
+          <article class="stack-orbit-card">
+            <p class="stack-orbit-num">Orbit 1 // Inner</p>
+            <h3 class="stack-orbit-name">Python</h3>
+            <p class="stack-orbit-work">Biomedical RAG, local models, and multi-source data pipelines.</p>
+            <a class="stack-evidence-link" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
+              <span>Proved by Griffin Bio</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            </a>
+          </article>
+
+          <!-- Orbit 2: C# -->
+          <article class="stack-orbit-card">
+            <p class="stack-orbit-num">Orbit 2</p>
+            <h3 class="stack-orbit-name">C# / .NET</h3>
+            <p class="stack-orbit-work">Windows accessibility overlays, Live Captions hooks, and WPF desktop software.</p>
+            <a class="stack-evidence-link" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
+              <span>Proved by LiveSubs</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            </a>
+          </article>
+
+          <!-- Orbit 3: Rust -->
+          <article class="stack-orbit-card">
+            <p class="stack-orbit-num">Orbit 3</p>
+            <h3 class="stack-orbit-name">Rust</h3>
+            <p class="stack-orbit-work">MCP server stdio engine, causal graph algorithms, and Tauri desktop integration.</p>
+            <a class="stack-evidence-link" href="https://github.com/Diva143V/Knox" target="_blank" rel="noopener noreferrer">
+              <span>Proved by Knox</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            </a>
+          </article>
+
+          <!-- Orbit 4: TypeScript -->
+          <article class="stack-orbit-card">
+            <p class="stack-orbit-num">Orbit 4</p>
+            <h3 class="stack-orbit-name">TypeScript</h3>
+            <p class="stack-orbit-work">React, Vite, interactive graphics, and modern web application interfaces.</p>
+            <a class="stack-evidence-link" href="https://github.com/Diva143V/myselfdiva" target="_blank" rel="noopener noreferrer">
+              <span>Proved by myselfdiva</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            </a>
+          </article>
+
+          <!-- Orbit 5: C++ -->
+          <article class="stack-orbit-card">
+            <p class="stack-orbit-num">Orbit 5 // Outer</p>
+            <h3 class="stack-orbit-name">C++</h3>
+            <p class="stack-orbit-work">Algorithmic complexity reduction and high-performance search data structures.</p>
+            <a class="stack-evidence-link" href="#credentials">
+              <span>Proved by HackMe '24</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+            </a>
+          </article>
         </div>
       </div>
     </section>
 
-    <!-- ============ CREDENTIALS ============ -->
-    <section class="track" id="certifications"
-      data-caption="JPMorgan Chase software engineering simulation, Google Cloud compute, and HackerRank C and C++.">
+    <!-- ==================== CREDENTIALS ==================== -->
+    <section class="section-credentials" id="credentials">
       <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 05</span>
-          <h2>Credentials</h2>
-          <span class="count">3 completed</span>
+        <div class="section-head">
+          <div>
+            <span class="section-tag">Sector 04 // Verifications</span>
+            <h2 class="section-title">Credentials &amp; Honors</h2>
+          </div>
+          <span class="section-count">4 Validated Milestones</span>
         </div>
 
-        <ul class="cred reveal">
-          <li>
-            <strong>Software Engineering Job Simulation</strong>
-            <span>JPMorgan Chase &amp; Co. · Jan 2026</span>
+        <ul class="cred-list">
+          <li class="cred-item">
+            <span class="cred-title">First Place — HackMe 2024</span>
+            <span class="cred-source">Algorithmic optimization in C++ // 1st Place Win</span>
           </li>
-          <li>
-            <strong>The Basics of Google Cloud Compute</strong>
-            <span>Google · Oct 2025</span>
+          <li class="cred-item">
+            <span class="cred-title">Software Engineering Job Simulation</span>
+            <span class="cred-source">JPMorgan Chase &amp; Co. // Jan 2026</span>
           </li>
-          <li>
-            <strong>C and C++ Programming</strong>
-            <span>HackerRank</span>
+          <li class="cred-item">
+            <span class="cred-title">The Basics of Google Cloud Compute</span>
+            <span class="cred-source">Google Cloud // Oct 2025</span>
+          </li>
+          <li class="cred-item">
+            <span class="cred-title">C and C++ Programming</span>
+            <span class="cred-source">HackerRank Certified</span>
           </li>
         </ul>
       </div>
     </section>
 
-    <!-- ============ CONTACT ============ -->
-    <section class="track" id="contact"
-      data-caption="Open to internships and collaborations. Write to diwa.p2007@gmail.com — end of track.">
+    <!-- ==================== CONTACT: TRANSMISSION ==================== -->
+    <section class="section-contact" id="contact">
       <div class="wrap">
-        <div class="track-head reveal">
-          <span class="slug">Track 06</span>
-          <h2>Contact</h2>
-          <span class="count">Usually replies same week</span>
+        <div class="section-head">
+          <div>
+            <span class="section-tag">Sector 05 // Transmission</span>
+            <h2 class="section-title">Open Channel</h2>
+          </div>
+          <span class="section-count">Visakhapatnam, IN · Replies Promptly</span>
         </div>
 
-        <h3 class="contact-head">
-          <span class="mask"><span>Tell me</span></span>
-          <span class="mask" style="--i:1"><span>what you're</span></span>
-          <span class="mask" style="--i:2"><span><em>building</em></span></span>
+        <h3 class="contact-headline">
+          Tell me what you're <em>building</em>.
         </h3>
 
-        <p class="lead reveal">Internships, collaborations, or a project that needs someone who will actually finish it
-          — all welcome. The fastest way to reach me is email.</p>
+        <p class="contact-lead">
+          Internships, collaborations, or an ambitious project that needs someone who will actually finish it — my inbox is open.
+          If you're working on something where latency actually matters, reach out.
+        </p>
 
-        <a class="mailto reveal" style="--i:1" href="mailto:diwa.p2007@gmail.com">
-          diwa.p2007@gmail.com
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <a class="contact-email-cta" href="mailto:diwa.p2007@gmail.com">
+          <span>diwa.p2007@gmail.com</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="18" height="18" aria-hidden="true">
             <path d="M7 17 17 7M9 7h8v8" />
           </svg>
         </a>
 
-        <div class="socials reveal" style="--i:2">
-          <a href="https://github.com/Diva143V" target="_blank" rel="noopener noreferrer">
+        <div class="socials-cluster">
+          <a class="social-pill" href="https://github.com/Diva143V" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path
-                d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.63-2.8 5.65-5.48 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
-            </svg> GitHub
+              <path d="M12 .5a12 12 0 0 0-3.79 23.4c.6.1.82-.26.82-.58v-2c-3.34.73-4.04-1.6-4.04-1.6-.55-1.4-1.34-1.77-1.34-1.77-1.1-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.84 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.11-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.63-2.8 5.65-5.48 5.95.43.37.81 1.1.81 2.22v3.29c0 .32.22.69.83.58A12 12 0 0 0 12 .5Z" />
+            </svg>
+            <span>GitHub</span>
           </a>
-          <a href="https://linkedin.com/in/diwakar-venkat-peddada-66aa30229/" target="_blank" rel="noopener noreferrer">
+          <a class="social-pill" href="https://linkedin.com/in/diwakar-venkat-peddada-66aa30229/" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path
-                d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C21.4 8.75 22 11 22 14.1V21h-4v-6.1c0-1.46-.03-3.34-2.04-3.34-2.04 0-2.36 1.6-2.36 3.24V21h-4V9Z" />
-            </svg> LinkedIn
+              <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-.95 1.83-1.95 3.77-1.95C21.4 8.75 22 11 22 14.1V21h-4v-6.1c0-1.46-.03-3.34-2.04-3.34-2.04 0-2.36 1.6-2.36 3.24V21h-4V9Z" />
+            </svg>
+            <span>LinkedIn</span>
           </a>
-          <a href="https://x.com/Diva_2007_" target="_blank" rel="noopener noreferrer">
+          <a class="social-pill" href="https://x.com/Diva_2007_" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path
-                d="M18.24 2H21.5l-7.13 8.15L22.75 22h-6.6l-5.17-6.76L4.98 22H1.72l7.62-8.71L1.5 2h6.77l4.67 6.18L18.24 2Zm-1.15 18h1.8L7.02 3.86H5.08L17.09 20Z" />
-            </svg> X
+              <path d="M18.24 2H21.5l-7.13 8.15L22.75 22h-6.6l-5.17-6.76L4.98 22H1.72l7.62-8.71L1.5 2h6.77l4.67 6.18L18.24 2Zm-1.15 18h1.8L7.02 3.86H5.08L17.09 20Z" />
+            </svg>
+            <span>X (Twitter)</span>
           </a>
-          <a href="mailto:diwa.p2007@gmail.com">
+          <a class="social-pill" href="mailto:diwa.p2007@gmail.com">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="m3 7 9 6 9-6" />
-            </svg> Email
+            </svg>
+            <span>Direct Email</span>
           </a>
         </div>
       </div>
@@ -2359,349 +726,21 @@ body.cc-off .cc-restore {
 
   </main>
 
-  <footer>
-    <div class="wrap foot">
-      <span>&copy; <span id="year">2026</span> Diwakar Venkat Peddada</span>
-      <span>Built from scratch — HTML, CSS, JavaScript</span>
-      <a href="#top">Back to start ↑</a>
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>&copy; <span id="current-year">2026</span> Diwakar Venkat Peddada</span>
+      <span>Personal Universe · Visakhapatnam, India</span>
+      <a class="back-to-sun" href="#hero">Back to Sun &uarr;</a>
     </div>
   </footer>
 
-  <!-- ============ CAPTION BAR (signature) ============ -->
-  <div class="ccbar" id="ccbar" aria-label="Section captions">
-    <div class="scrub" id="scrub" aria-hidden="true" title="Click to jump through the page">
-      <i id="scrub-fill"></i>
-    </div>
-    <span class="cc-time" aria-hidden="true"><b id="cc-now">00:00</b> / <span id="cc-total">07:24</span></span>
-    <p class="cc-text" id="cc-text" aria-hidden="true"></p>
-    <button class="cc-toggle" id="cc-toggle" type="button" aria-pressed="true" aria-label="Hide captions">CC ✕</button>
-  </div>
-  <button class="cc-restore" id="cc-restore" type="button" aria-label="Show captions">CC</button>
-
-  <script>
-(function () {
-  'use strict';
-
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var $ = function (s, r) { return (r || document).querySelector(s); };
-  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
-
-  /* ---------------------------------------------------------
-     Reveal on scroll
-     --------------------------------------------------------- */
-  var revealables = $$('.reveal, .mask');
-
-  if (!('IntersectionObserver' in window)) {
-    revealables.forEach(function (el) { el.classList.add('in'); });
-  } else {
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (!e.isIntersecting) return;
-        e.target.classList.add('in');
-        io.unobserve(e.target);
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-    revealables.forEach(function (el) { io.observe(el); });
-  }
-
-  /* ---------------------------------------------------------
-     Nav: drawer, scroll spy, local clock
-     --------------------------------------------------------- */
-  var burger = $('#burger');
-  var drawer = $('#drawer');
-
-  function closeDrawer() {
-    if (!drawer) return;
-    drawer.classList.remove('open');
-    if (burger) burger.setAttribute('aria-expanded', 'false');
-  }
-
-  if (burger && drawer) {
-    burger.addEventListener('click', function () {
-      var open = drawer.classList.toggle('open');
-      burger.setAttribute('aria-expanded', String(open));
-    });
-    $$('a', drawer).forEach(function (a, i) {
-      a.style.setProperty('--i', i);
-      a.addEventListener('click', closeDrawer);
-    });
-    window.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') closeDrawer();
-    });
-  }
-
-  var sections = $$('main section[id]');
-  var navLinks = $$('.nav-links a');
-
-  var clock = $('#clock');
-  function tickClock() {
-    if (!clock) return;
-    var d = new Date();
-    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-    clock.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + ' IST';
-  }
-  tickClock();
-  setInterval(tickClock, 1000);
-
-  /* ---------------------------------------------------------
-     Caption bar — the signature element.
-     Reads data-caption off the section in view, retypes it,
-     and runs a timecode + scrubber tied to scroll position.
-     --------------------------------------------------------- */
-  var bar = $('#ccbar');
-  var ccText = $('#cc-text');
-  var ccNow = $('#cc-now');
-  var ccTotal = $('#cc-total');
-  var scrub = $('#scrub');
-  var scrubFill = $('#scrub-fill');
-  var ccToggle = $('#cc-toggle');
-  var ccRestore = $('#cc-restore');
-
-  var TOTAL = 444; /* seconds of "runtime" the page maps onto */
-
-  function fmt(s) {
-    s = Math.max(0, Math.min(TOTAL, Math.round(s)));
-    var m = Math.floor(s / 60);
-    var r = s % 60;
-    return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
-  }
-  if (ccTotal) ccTotal.textContent = fmt(TOTAL);
-
-  var typer = null;
-  function setCaption(text) {
-    if (!ccText || ccText.dataset.current === text) return;
-    ccText.dataset.current = text;
-    if (typer) clearInterval(typer);
-    if (reduced) { ccText.textContent = text; return; }
-    var i = 0;
-    ccText.textContent = '';
-    typer = setInterval(function () {
-      i += 2;
-      ccText.textContent = text.slice(0, i);
-      if (i >= text.length) { clearInterval(typer); typer = null; }
-    }, 12);
-  }
-
-  function currentSection() {
-    var mid = window.scrollY + window.innerHeight * 0.45;
-    var found = sections[0];
-    sections.forEach(function (s) {
-      if (s.offsetTop <= mid) found = s;
-    });
-    return found;
-  }
-
-  var lastId = '';
-  function syncScroll() {
-    var doc = document.documentElement;
-    var max = doc.scrollHeight - window.innerHeight;
-    var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-
-    if (scrubFill) scrubFill.style.width = (p * 100).toFixed(2) + '%';
-    if (ccNow) ccNow.textContent = fmt(p * TOTAL);
-
-    var sec = currentSection();
-    if (sec && sec.id !== lastId) {
-      lastId = sec.id;
-      setCaption(sec.getAttribute('data-caption') || '');
-      navLinks.forEach(function (a) {
-        var on = a.getAttribute('href') === '#' + sec.id;
-        if (on) a.setAttribute('aria-current', 'true');
-        else a.removeAttribute('aria-current');
-      });
-    }
-  }
-
-  var ticking = false;
-  window.addEventListener('scroll', function () {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(function () { syncScroll(); ticking = false; });
-  }, { passive: true });
-  window.addEventListener('resize', syncScroll, { passive: true });
-  syncScroll();
-
-  /* click the scrubber to seek through the page */
-  if (scrub) {
-    scrub.addEventListener('click', function (e) {
-      var r = scrub.getBoundingClientRect();
-      var p = (e.clientX - r.left) / r.width;
-      var max = document.documentElement.scrollHeight - window.innerHeight;
-      window.scrollTo({ top: max * p, behavior: reduced ? 'auto' : 'smooth' });
-    });
-  }
-
-  /* CC on/off, remembered where storage is available */
-  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
-  function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-
-  function setCC(on) {
-    document.body.classList.toggle('cc-off', !on);
-    if (ccToggle) ccToggle.setAttribute('aria-pressed', String(on));
-    store('diva-cc', on ? 'on' : 'off');
-  }
-  if (read('diva-cc') === 'off') setCC(false);
-
-  if (ccToggle) ccToggle.addEventListener('click', function () { setCC(false); });
-  if (ccRestore) ccRestore.addEventListener('click', function () { setCC(true); });
-
-  /* ---------------------------------------------------------
-     Rotating role line
-     --------------------------------------------------------- */
-  var role = $('#role');
-  var roles = [
-    'Software engineer',
-    'AI Applications',
-    'Real-time systems',
-    'Machine learning',
-    'Front-end / React',
-    'Research tooling'
-  ];
-  if (role && !reduced) {
-    var ri = 0;
-    setInterval(function () {
-      role.classList.remove('in');
-      role.classList.add('out');
-      setTimeout(function () {
-        ri = (ri + 1) % roles.length;
-        role.textContent = roles[ri];
-        role.classList.remove('out');
-        role.classList.add('in');
-      }, 280);
-    }, 2600);
-  }
-
-  /* ---------------------------------------------------------
-     Pointer spotlight on project rows
-     --------------------------------------------------------- */
-  if (!reduced && window.matchMedia('(hover: hover)').matches) {
-    $$('.work-item').forEach(function (el) {
-      el.addEventListener('pointermove', function (e) {
-        var r = el.getBoundingClientRect();
-        el.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-        el.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
-      });
-    });
-  }
-
-  /* ---------------------------------------------------------
-     LiveSubs demo caption inside the project card
-     --------------------------------------------------------- */
-  var demo = $('#subs-demo');
-  if (demo && !reduced) {
-    var lines = [
-      ['The meeting starts in five minutes.', 'EN → EN  ·  source'],
-      ['సమావేశం ఐదు నిమిషాల్లో మొదలవుతుంది.', 'EN → TE  ·  translated'],
-      ['La reunión empieza en cinco minutos.', 'EN → ES  ·  translated'],
-      ['会議は5分後に始まります。', 'EN → JA  ·  translated']
-    ];
-    var di = 0;
-    var big = demo.querySelector('span');
-    var small = demo.querySelector('small');
-    setInterval(function () {
-      di = (di + 1) % lines.length;
-      demo.style.opacity = '0';
-      setTimeout(function () {
-        big.textContent = lines[di][0];
-        small.textContent = lines[di][1];
-        demo.style.opacity = '1';
-      }, 260);
-    }, 2800);
-    demo.style.transition = 'opacity .26s ease';
-  }
-
-  /* ---------------------------------------------------------
-     Chroma-key portrait. Falls back to the monogram if the
-     asset is missing, so the page never shows a dead frame.
-     --------------------------------------------------------- */
-  var video = $('#chroma-video');
-  var canvas = $('#chroma-canvas');
-  var mono = $('#monogram');
-
-  if (video && canvas) {
-    var ctx = canvas.getContext('2d', { willReadFrequently: true });
-    var running = false;
-
-    function paint() {
-      if (document.hidden) { running = false; return; }
-      if (!video.paused && !video.ended && video.videoWidth) {
-        if (canvas.width !== video.videoWidth) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-        }
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        try {
-          var frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          var d = frame.data;
-          for (var i = 0; i < d.length; i += 4) {
-            var r = d[i], g = d[i + 1], b = d[i + 2];
-            if (g > 65 && g > r * 1.1 && g > b * 1.1) d[i + 3] = 0;
-          }
-          ctx.putImageData(frame, 0, 0);
-        } catch (err) { /* tainted canvas — leave the raw frame */ }
-      }
-      requestAnimationFrame(paint);
-    }
-
-    video.addEventListener('playing', function () {
-      canvas.classList.add('live');
-      if (mono) mono.classList.add('gone');
-      if (!running) { running = true; paint(); }
-    });
-
-    video.addEventListener('error', function () {
-      canvas.classList.remove('live');
-      if (mono) mono.classList.remove('gone');
-    });
-
-    document.addEventListener('visibilitychange', function () {
-      if (!document.hidden && !video.paused && !running) { running = true; paint(); }
-    });
-
-    video.muted = true;
-    var attempt = video.play();
-    if (attempt && attempt.catch) attempt.catch(function () { });
-  }
-
-  /* voice-over button */
-  var audioBtn = $('#audio-btn');
-  if (audioBtn) {
-    var vo = null;
-    var playing = false;
-    audioBtn.addEventListener('click', function () {
-      if (!vo) {
-        vo = new Audio('assets/download.wav');
-        vo.volume = 0.6;
-        vo.addEventListener('ended', function () {
-          playing = false;
-          audioBtn.querySelector('span').textContent = 'Play audio';
-        });
-        vo.addEventListener('error', function () {
-          audioBtn.querySelector('span').textContent = 'No audio';
-          audioBtn.disabled = true;
-        });
-      }
-      if (playing) {
-        vo.pause();
-        vo.currentTime = 0;
-        playing = false;
-        audioBtn.querySelector('span').textContent = 'Play audio';
-      } else {
-        var p = vo.play();
-        if (p && p.catch) p.catch(function () { });
-        playing = true;
-        audioBtn.querySelector('span').textContent = 'Stop audio';
-      }
-    });
-  }
-
-  /* year in footer */
-  var y = $('#year');
-  if (y) y.textContent = new Date().getFullYear();
-})();
-
-  </script>
+  <!-- Scripts: GSAP + ScrollTrigger (CDN) followed by custom modules -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="assets/js/starfield.js"></script>
+  <script src="assets/js/orbit-system.js"></script>
+  <script src="assets/js/main.js"></script>
 </body>
 
 </html>
