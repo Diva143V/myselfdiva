@@ -37,11 +37,25 @@
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
+  <!-- Accessible Celestial Index for Assistive Tech / Screen Readers -->
+  <nav class="sr-only" aria-label="Accessible Celestial Systems and Projects Index">
+    <h2>Celestial Hierarchy and Projects Directory</h2>
+    <ul>
+      <li><a href="#hero">Sun // Diwakar — Solar Core Establishing Overview</a></li>
+      <li><a href="#case-livesubs">Orbit 2 · C# / .NET — LiveSubs (Real-Time Subtitle Overlay)</a></li>
+      <li><a href="#case-griffin">Orbit 1 · Python — Griffin Bio (Scientific Evidence Synthesis)</a></li>
+      <li><a href="#case-knox">Orbit 3 · Rust — Knox (Causal Knowledge Graph &amp; MCP Server)</a></li>
+      <li><a href="#case-sygriffin">Orbit 1 · Python — SyGriffin (Neoantigen Discovery Companion)</a></li>
+      <li><a href="#stack">Orbit 4 · TypeScript — myselfdiva (Interactive 3D Portfolio Universe)</a></li>
+      <li><a href="#credentials">Orbit 5 · C++ — HackMe 2024 Solver</a></li>
+    </ul>
+  </nav>
+
   <!-- Fullscreen 3D WebGL Canvas Layer -->
   <div id="webgl-universe-container" aria-hidden="true"></div>
 
-  <!-- Collision-Free 3D Label Overlay Layer -->
-  <div id="labels-3d-overlay" aria-hidden="true"></div>
+  <!-- Collision-Free 3D Label Overlay Layer (semantic interactive region) -->
+  <div id="labels-3d-overlay" role="region" aria-label="3D Celestial Labels"></div>
 
   <!-- Staged Ignition Black Curtain (Fades on initial load) -->
   <div id="ignition-curtain" aria-hidden="true"></div>
@@ -54,9 +68,15 @@
         <span>Diwakar</span>
       </a>
 
+      <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-expanded="false" aria-label="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
       <nav class="nav-links" aria-label="Flight Destinations">
-        <a href="#hero" data-flight-step="0">Sun Core</a>
-        <a href="#scroll-flight-track" data-flight-step="0.25">Work Flight</a>
+        <a href="#hero">Sun Core</a>
+        <a href="#scroll-flight-track" data-flight-step="0.22">Work Flight</a>
         <a href="#experience">Mission Log</a>
         <a href="#stack">Planetary Stack</a>
         <a href="#credentials">Credentials</a>
@@ -126,10 +146,15 @@
         <div class="flight-deck" role="region" aria-label="3D Flight Case Studies">
 
           <!-- Case 1: LiveSubs -->
-          <article class="flight-case-card" data-case-id="livesubs" data-progress-min="0.18" data-progress-max="0.38">
+          <article class="flight-case-card" id="case-livesubs" data-case-id="livesubs" data-progress-min="0.15" data-progress-max="0.35">
+            <div class="flight-stepper-nav">
+              <button type="button" class="stepper-btn stepper-prev" aria-label="Return to Sun Core">‹ Sun Core</button>
+              <span class="stepper-counter">Case 01 / 04</span>
+              <button type="button" class="stepper-btn stepper-next" aria-label="Next case study">Next ›</button>
+            </div>
             <div class="card-meta-orbit">
-              <span>Orbit 2 · C# / .NET</span>
-              <span>Case 01 // Shipped</span>
+              <span class="meta-orbit-tag">Orbit 2 · C# / .NET</span>
+              <span class="meta-status-tag">Case 01 // Shipped</span>
             </div>
             <h3>LiveSubs</h3>
             <p class="flight-problem">Problem: Speech in calls and video streams moves faster than users can read or translate using conventional transcription windows.</p>
@@ -164,10 +189,15 @@
           </article>
 
           <!-- Case 2: Griffin Bio -->
-          <article class="flight-case-card" data-case-id="griffin" data-progress-min="0.39" data-progress-max="0.59">
+          <article class="flight-case-card" id="case-griffin" data-case-id="griffin" data-progress-min="0.36" data-progress-max="0.55">
+            <div class="flight-stepper-nav">
+              <button type="button" class="stepper-btn stepper-prev" aria-label="Previous case study">‹ Prev</button>
+              <span class="stepper-counter">Case 02 / 04</span>
+              <button type="button" class="stepper-btn stepper-next" aria-label="Next case study">Next ›</button>
+            </div>
             <div class="card-meta-orbit">
-              <span>Orbit 1 · Python</span>
-              <span>Case 02 // Active</span>
+              <span class="meta-orbit-tag">Orbit 1 · Python</span>
+              <span class="meta-status-tag">Case 02 // Active</span>
             </div>
             <h3>Griffin Bio</h3>
             <p class="flight-problem">Problem: Biomedical research papers are scattered across fragmented silos with conflicting clinical claims that take weeks to manually synthesize.</p>
@@ -198,10 +228,15 @@
           </article>
 
           <!-- Case 3: Knox -->
-          <article class="flight-case-card" data-case-id="knox" data-progress-min="0.60" data-progress-max="0.77">
+          <article class="flight-case-card" id="case-knox" data-case-id="knox" data-progress-min="0.56" data-progress-max="0.75">
+            <div class="flight-stepper-nav">
+              <button type="button" class="stepper-btn stepper-prev" aria-label="Previous case study">‹ Prev</button>
+              <span class="stepper-counter">Case 03 / 04</span>
+              <button type="button" class="stepper-btn stepper-next" aria-label="Next case study">Next ›</button>
+            </div>
             <div class="card-meta-orbit">
-              <span>Orbit 3 · Rust</span>
-              <span>Case 03 // Shipped</span>
+              <span class="meta-orbit-tag">Orbit 3 · Rust</span>
+              <span class="meta-status-tag">Case 03 // Shipped</span>
             </div>
             <h3>Knox</h3>
             <p class="flight-problem">Problem: AI coding agents suffer from catastrophic amnesia, losing architectural rationale, design decisions, and constraints across sessions.</p>
@@ -232,10 +267,15 @@
           </article>
 
           <!-- Case 4: SyGriffin -->
-          <article class="flight-case-card" data-case-id="sygriffin" data-progress-min="0.78" data-progress-max="0.95">
+          <article class="flight-case-card" id="case-sygriffin" data-case-id="sygriffin" data-progress-min="0.76" data-progress-max="0.95">
+            <div class="flight-stepper-nav">
+              <button type="button" class="stepper-btn stepper-prev" aria-label="Previous case study">‹ Prev</button>
+              <span class="stepper-counter">Case 04 / 04</span>
+              <button type="button" class="stepper-btn stepper-next" aria-label="Continue to mission log">Mission Log ›</button>
+            </div>
             <div class="card-meta-orbit">
-              <span>Orbit 1 · Python</span>
-              <span>Case 04 // Scientific MVP</span>
+              <span class="meta-orbit-tag">Orbit 1 · Python</span>
+              <span class="meta-status-tag">Case 04 // Scientific MVP</span>
             </div>
             <h3>SyGriffin</h3>
             <p class="flight-problem">Problem: Identifying clinically viable neoantigen candidates from raw tumor sequencing requires complex, opaque computational biology pipelines.</p>
@@ -269,6 +309,27 @@
         </div>
       </div>
     </div>
+
+    <!-- ==================== 3D EXPLORATION & ZOOM HUD ==================== -->
+    <nav class="explore-mode-bar" id="explore-mode-bar" aria-label="3D Galaxy Navigation Controls">
+      <button type="button" class="hud-mode-toggle" id="hud-mode-toggle" aria-pressed="false" aria-label="Toggle between Guided flight and Free 3D exploration">
+        <span class="hud-mode-icon" aria-hidden="true">🔭</span>
+        <span class="hud-mode-text">Explore Galaxy</span>
+      </button>
+      <div class="hud-controls-group" id="hud-controls-group" hidden>
+        <button type="button" class="hud-btn" id="hud-zoom-in" aria-label="Zoom camera in">+</button>
+        <button type="button" class="hud-btn" id="hud-zoom-out" aria-label="Zoom camera out">−</button>
+        <button type="button" class="hud-btn" id="hud-focus" aria-label="Center camera on focused celestial body">Focus</button>
+        <button type="button" class="hud-btn" id="hud-home" aria-label="Reset camera to solar overview">Home</button>
+        <div class="hud-select-wrapper">
+          <label for="hud-celestial-select" class="sr-only">Target Celestial Body</label>
+          <select id="hud-celestial-select" class="hud-jump-select" aria-label="Select celestial body to inspect and focus">
+            <option value="" disabled selected>Target Body...</option>
+          </select>
+        </div>
+        <button type="button" class="hud-btn hud-exit" id="hud-exit" aria-label="Exit explore mode (Escape)">Exit (Esc)</button>
+      </div>
+    </nav>
 
     <!-- ==================== CALM SECTIONS (BELOW THE 3D FLIGHT) ==================== -->
     <div class="calm-universe-sections">

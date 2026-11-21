@@ -206,12 +206,12 @@ export const PythonPlanetShader = {
       float nightFactor = 1.0 - dayFactor;
       float circuitGrid = 0.0;
       if (elevation >= 0.04) {
-        // Procedural neural arteries
-        float net1 = step(0.78, sin(vPosition.x * 32.0 + fbm3D(vPosition * 8.0, 3) * 6.0));
-        float net2 = step(0.78, cos(vPosition.y * 32.0 + fbm3D(vPosition * 8.0, 3) * 6.0));
+        // Antialiased subtle neural arteries
+        float net1 = smoothstep(0.72, 0.88, sin(vPosition.x * 20.0 + fbm3D(vPosition * 6.0, 3) * 4.0));
+        float net2 = smoothstep(0.72, 0.88, cos(vPosition.y * 20.0 + fbm3D(vPosition * 6.0, 3) * 4.0));
         circuitGrid = max(net1, net2) * smoothstep(0.04, 0.25, elevation);
       }
-      vec3 bioluminescentGlow = vec3(0.0, 1.0, 0.82) * circuitGrid * 2.5 * nightFactor;
+      vec3 bioluminescentGlow = vec3(0.02, 0.65, 0.55) * circuitGrid * 0.65 * nightFactor;
 
       // Twilight horizon warming (amber-gold at terminator)
       vec3 twilightColor = vec3(0.96, 0.45, 0.15) * twilight * 0.45;

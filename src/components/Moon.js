@@ -23,7 +23,7 @@ export function createMoon(config, parentPlanet) {
 
   // 1. Chiseled Crystalline Faceted Geometry
   const rawGeo = new THREE.IcosahedronGeometry(radius, 1);
-  const facetedGeo = rawGeo.toNonIndexed(); // Guarantees distinct face normals for sharp facet edges
+  const facetedGeo = rawGeo.index ? rawGeo.toNonIndexed() : rawGeo; // Guarantees distinct face normals for sharp facet edges
 
   // Displace vertices to create geometric crystalline fractures
   const posAttr = facetedGeo.attributes.position;

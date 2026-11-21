@@ -1,8 +1,17 @@
 /**
  * UniverseScene.js — Three.js Scene Graph, Celestial Bodies & Camera Orchestration
+ * 
+ * Features:
+ * - Dynamic galaxy generation from GALAXY_CONFIG
+ * - Strict separation of raycast picking vector from parallax vector (P0 fix)
+ * - Safe cold-load initialization at Hero vantage without scene ejection
+ * - Dual camera navigation model: Guided Mode (scroll/route) & Explore Mode (bounded orbit/zoom)
+ * - Dynamic target-relative framing composed for reading card clearance (25-35 deg elevation)
+ * - Time-based exponential damping: 1 - exp(-lambda * dt) (P2 fix)
  */
 
 import * as THREE from 'three';
+import { GALAXY_CONFIG } from '../config/galaxyConfig.js';
 import { createStarfield } from '../components/Starfield.js';
 import { createSun } from '../components/Sun.js';
 import { createPlanet } from '../components/Planet.js';
@@ -24,10 +33,11 @@ export class UniverseScene {
 
     // 1. Scene & Camera Setup (Deep space chiaroscuro fog)
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x04060a, 0.00038);
+    this.scene.fog = new THREE.FogExp2(0x04060a, 0.00035);
 
     this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.5, 3500);
     this.camera.position.set(0, 180, 420); // Initial deep-space overview
+    this.camera.up.set(0, 1, 0);
 
     // 2. WebGL Renderer
     this.renderer = new THREE.WebGLRenderer({
@@ -40,37 +50,47 @@ export class UniverseScene {
     this.renderer.setSize(this.width, this.height);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.toneMappingExposure = 1.08;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.appendChild(this.renderer.domElement);
 
-    // 3. Ultra-subtle Cosmic Starlight Fill (High Chiaroscuro Contrast)
+    // 3. Cosmic Fill Light
     const ambientLight = new THREE.AmbientLight(0x040712, 0.18);
     this.scene.add(ambientLight);
 
-    // 4. Starfield & Deep Space Nebulae
+    // 4. Starfield & Nebulae
     this.starfield = createStarfield(this.isMobile ? 1800 : 3400);
     this.scene.add(this.starfield.group);
 
-    // 5. Central Sun (Diwakar)
-    this.sun = createSun(22);
+    // 5. Central Sun (Authored from config)
+    this.sun = createSun(GALAXY_CONFIG.sun.radius);
     this.scene.add(this.sun.group);
 
-    // 6. Planetary Systems & Moons
+    // 6. Planetary Systems & Moons dynamically constructed from GALAXY_CONFIG
     this.planets = {};
     this.moons = {};
     this.clickableObjects = [];
-    this.setupPlanetsAndMoons();
+    this.setupPlanetarySystem();
 
-    // 7. Raycaster for Interactive Hover & Selection
+    // 7. Interaction Vectors — Strict P0 Separation
     this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2(-999, -999);
+    this.pickingPointer = new THREE.Vector2(-999, -999); // Screen picking sentinel
+    this.parallax = new THREE.Vector2(0, 0);             // Parallax strictly (0, 0) on cold load
+    this.hasPointerMoved = false;
+    this.isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
     this.hoveredObject = null;
     this.focusedTarget = null; // When camera focuses on a body
 
-    // 8. Camera Flight Spline (Cinematic Scroll Path)
+    // 8. Dual Navigation Model: Guided vs Explore
+    this.mode = 'guided'; // 'guided' | 'explore'
+    this.exploreTarget = new THREE.Vector3(0, 0, 0);
+    this.exploreSpherical = new THREE.Spherical(420, Math.PI * 0.35, 0);
+    this.isDragging = false;
+    this.previousPointerPos = { x: 0, y: 0 };
+
+    // 9. Flight Spline for Guided Tour Overview
     this.flightSpline = this.createFlightSpline();
-    this.splineProgress = 0; // 0 to 1 scrubbed by ScrollTrigger
+    this.splineProgress = 0;
 
     // Camera target vectors (reused to prevent GC)
     this.currentCamPos = new THREE.Vector3().copy(this.camera.position);
@@ -86,240 +106,145 @@ export class UniverseScene {
     this.bindEvents();
   }
 
-  setupPlanetsAndMoons() {
-    // --- PLANET 1: PYTHON (Ocean Abyss & Bioluminescent Grid) ---
-    const python = createPlanet({
-      name: 'Python',
-      id: 'python',
-      orbitIndex: 1,
-      radius: 9.5,
-      orbitRadius: 95,
-      orbitSpeed: 0.0035,
-      initialAngle: 0.6,
-      inclination: 0.04,
-      rotationSpeed: 0.004
-    });
-    this.planets.python = python;
-    this.scene.add(python.group);
-    this.scene.add(python.orbitLine);
-    this.clickableObjects.push(python.mesh);
-
-    // Moons of Python: Griffin Bio, SyGriffin, Polaris, Sita
-    this.addMoon({
-      id: 'griffin',
-      name: 'Griffin Bio',
-      parentPlanet: python,
-      isMajor: true,
-      caseNumber: '02',
-      radius: 2.1,
-      orbitRadius: 22,
-      orbitSpeed: 0.012,
-      initialAngle: 0.8,
-      inclination: 0.12
+  setupPlanetarySystem() {
+    // Construct Planets from GALAXY_CONFIG
+    GALAXY_CONFIG.planets.forEach(pConfig => {
+      const planet = createPlanet(pConfig);
+      this.planets[pConfig.id] = planet;
+      this.scene.add(planet.group);
+      this.scene.add(planet.orbitLine);
+      this.clickableObjects.push(planet.mesh);
     });
 
-    this.addMoon({
-      id: 'sygriffin',
-      name: 'SyGriffin',
-      parentPlanet: python,
-      isMajor: true,
-      caseNumber: '04',
-      radius: 1.8,
-      orbitRadius: 32,
-      orbitSpeed: 0.008,
-      initialAngle: 2.6,
-      inclination: -0.15
-    });
+    // Construct Moons from GALAXY_CONFIG
+    GALAXY_CONFIG.moons.forEach(mConfig => {
+      const parentPlanet = this.planets[mConfig.parentPlanetId];
+      if (!parentPlanet) return;
 
-    this.addMoon({
-      id: 'polaris',
-      name: 'Polaris (Kg-Library-API)',
-      parentPlanet: python,
-      isMajor: false,
-      radius: 1.3,
-      orbitRadius: 42,
-      orbitSpeed: 0.0055,
-      initialAngle: 4.1,
-      inclination: 0.08
+      const moon = createMoon(mConfig, parentPlanet);
+      this.moons[mConfig.id] = moon;
+      this.scene.add(moon.group);
+      this.scene.add(moon.trailLine);
+      this.clickableObjects.push(moon.mesh);
     });
-
-    this.addMoon({
-      id: 'sita',
-      name: 'Sita',
-      parentPlanet: python,
-      isMajor: false,
-      radius: 1.2,
-      orbitRadius: 50,
-      orbitSpeed: 0.0042,
-      initialAngle: 5.4,
-      inclination: -0.09
-    });
-
-    // --- PLANET 2: C# / .NET (Banded Jovian Giant & Amber Vortex) ---
-    const csharp = createPlanet({
-      name: 'C# / .NET',
-      id: 'csharp',
-      orbitIndex: 2,
-      radius: 14.5,
-      orbitRadius: 180,
-      orbitSpeed: 0.0022,
-      initialAngle: 2.3,
-      inclination: -0.06,
-      rotationSpeed: 0.007,
-      isGasGiant: true
-    });
-    this.planets.csharp = csharp;
-    this.scene.add(csharp.group);
-    this.scene.add(csharp.orbitLine);
-    this.clickableObjects.push(csharp.mesh);
-
-    // Moon of C#: LiveSubs
-    this.addMoon({
-      id: 'livesubs',
-      name: 'LiveSubs',
-      parentPlanet: csharp,
-      isMajor: true,
-      caseNumber: '01',
-      radius: 2.3,
-      orbitRadius: 28,
-      orbitSpeed: 0.011,
-      initialAngle: 1.2,
-      inclination: 0.18
-    });
-
-    // --- PLANET 3: RUST (Scorched Terracotta & Chasm Rifts) ---
-    const rust = createPlanet({
-      name: 'Rust',
-      id: 'rust',
-      orbitIndex: 3,
-      radius: 8.8,
-      orbitRadius: 265,
-      orbitSpeed: 0.0016,
-      initialAngle: 4.2,
-      inclination: 0.08,
-      rotationSpeed: 0.0035
-    });
-    this.planets.rust = rust;
-    this.scene.add(rust.group);
-    this.scene.add(rust.orbitLine);
-    this.clickableObjects.push(rust.mesh);
-
-    // Moon of Rust: Knox
-    this.addMoon({
-      id: 'knox',
-      name: 'Knox',
-      parentPlanet: rust,
-      isMajor: true,
-      caseNumber: '03',
-      radius: 2.2,
-      orbitRadius: 25,
-      orbitSpeed: 0.013,
-      initialAngle: 3.1,
-      inclination: -0.14
-    });
-
-    // --- PLANET 4: TYPESCRIPT (Cryogenic Ice World & Planetary Rings) ---
-    const typeScript = createPlanet({
-      name: 'TypeScript',
-      id: 'typescript',
-      orbitIndex: 4,
-      radius: 9.2,
-      orbitRadius: 350,
-      orbitSpeed: 0.0012,
-      initialAngle: 5.1,
-      inclination: -0.05,
-      rotationSpeed: 0.004,
-      hasRings: true
-    });
-    this.planets.typescript = typeScript;
-    this.scene.add(typeScript.group);
-    this.scene.add(typeScript.orbitLine);
-    this.clickableObjects.push(typeScript.mesh);
-
-    // Moon of TypeScript: myselfdiva
-    this.addMoon({
-      id: 'myselfdiva',
-      name: 'myselfdiva',
-      parentPlanet: typeScript,
-      isMajor: false,
-      radius: 1.4,
-      orbitRadius: 24,
-      orbitSpeed: 0.014,
-      initialAngle: 2.1,
-      inclination: 0.1
-    });
-
-    // --- PLANET 5: C++ (Obsidian Basalt & Breathing Magma Fissures) ---
-    const cpp = createPlanet({
-      name: 'C++',
-      id: 'cpp',
-      orbitIndex: 5,
-      radius: 8.5,
-      orbitRadius: 435,
-      orbitSpeed: 0.0009,
-      initialAngle: 1.5,
-      inclination: 0.07,
-      rotationSpeed: 0.003
-    });
-    this.planets.cpp = cpp;
-    this.scene.add(cpp.group);
-    this.scene.add(cpp.orbitLine);
-    this.clickableObjects.push(cpp.mesh);
-
-    // Moon of C++: HackMe 2024
-    this.addMoon({
-      id: 'hackme',
-      name: 'HackMe 2024',
-      parentPlanet: cpp,
-      isMajor: false,
-      radius: 1.3,
-      orbitRadius: 22,
-      orbitSpeed: 0.016,
-      initialAngle: 0.4,
-      inclination: -0.12
-    });
-  }
-
-  addMoon(config) {
-    const moon = createMoon(config, config.parentPlanet);
-    this.moons[config.id] = moon;
-    this.scene.add(moon.group);
-    this.scene.add(moon.trailLine);
-    this.clickableObjects.push(moon.mesh);
   }
 
   createFlightSpline() {
-    // 3D Camera spline trajectory weaving through the planetary system
-    const waypoints = [
-      new THREE.Vector3(0, 180, 420),      // Step 0: Hero high vantage point
-      new THREE.Vector3(45, 65, 175),      // Step 1: Descending towards Orbit 1 (Python / Griffin)
-      new THREE.Vector3(120, 45, 120),     // Step 2: Gliding along Orbit 2 (C# / LiveSubs)
-      new THREE.Vector3(160, 50, -80),     // Step 3: Banking past Orbit 3 (Rust / Knox)
-      new THREE.Vector3(-120, 75, -220),   // Step 4: Outer approach across TypeScript & C++
-      new THREE.Vector3(0, 240, 560)       // Step 5: Calm sections wide-angle overview
-    ];
-
+    const waypoints = GALAXY_CONFIG.splineWaypoints.map(
+      wp => new THREE.Vector3(wp.x, wp.y, wp.z)
+    );
     return new THREE.CatmullRomCurve3(waypoints, false, 'centripetal', 0.5);
   }
 
   bindEvents() {
-    // Throttled mouse move for raycasting & subtle camera tilt
+    const canvas = this.renderer.domElement;
+    const activeTouches = new Map();
+    let initialPinchDist = 0;
+    let initialRadius = 0;
+
+    // Pointer move listener with P0 clamp, coarse check, and Explore orbit/pinch
     let lastMove = 0;
     window.addEventListener('pointermove', (e) => {
       const now = performance.now();
       if (now - lastMove < 16) return;
       lastMove = now;
 
-      this.mouse.x = (e.clientX / this.width) * 2 - 1;
-      this.mouse.y = -(e.clientY / this.height) * 2 + 1;
+      // Screen picking NDC
+      this.pickingPointer.x = (e.clientX / this.width) * 2 - 1;
+      this.pickingPointer.y = -(e.clientY / this.height) * 2 + 1;
+      this.hasPointerMoved = true;
+
+      // Parallax strictly clamped and disabled on coarse pointers
+      if (!this.isCoarsePointer) {
+        this.parallax.x = THREE.MathUtils.clamp(this.pickingPointer.x, -1, 1);
+        this.parallax.y = THREE.MathUtils.clamp(this.pickingPointer.y, -1, 1);
+      }
+
+      // Handle Explore mode touch pinch-to-zoom
+      if (this.mode === 'explore' && activeTouches.has(e.pointerId)) {
+        activeTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activeTouches.size === 2 && initialPinchDist > 0) {
+          const [t1, t2] = Array.from(activeTouches.values());
+          const currentDist = Math.hypot(t1.x - t2.x, t1.y - t2.y);
+          if (currentDist > 0) {
+            const pinchScale = initialPinchDist / currentDist;
+            this.exploreSpherical.radius = THREE.MathUtils.clamp(
+              initialRadius * pinchScale,
+              35,
+              800
+            );
+            this.updateExploreCameraPosition();
+          }
+          return;
+        }
+      }
+
+      // Handle Explore mode single-pointer orbit drag
+      if (this.mode === 'explore' && this.isDragging) {
+        const deltaX = e.clientX - this.previousPointerPos.x;
+        const deltaY = e.clientY - this.previousPointerPos.y;
+        this.previousPointerPos = { x: e.clientX, y: e.clientY };
+
+        const rotateSpeed = 0.005;
+        this.exploreSpherical.theta -= deltaX * rotateSpeed;
+        this.exploreSpherical.phi -= deltaY * rotateSpeed;
+        this.exploreSpherical.phi = THREE.MathUtils.clamp(this.exploreSpherical.phi, 0.15, Math.PI - 0.2);
+        this.updateExploreCameraPosition();
+      }
     }, { passive: true });
+
+    // Explore mode pointer down / up / cancel
+    canvas.addEventListener('pointerdown', (e) => {
+      if (this.mode === 'explore') {
+        activeTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (activeTouches.size === 1) {
+          this.isDragging = true;
+          this.previousPointerPos = { x: e.clientX, y: e.clientY };
+        } else if (activeTouches.size === 2) {
+          this.isDragging = false;
+          const [t1, t2] = Array.from(activeTouches.values());
+          initialPinchDist = Math.hypot(t1.x - t2.x, t1.y - t2.y);
+          initialRadius = this.exploreSpherical.radius;
+        }
+      }
+    });
+
+    const onPointerUpOrCancel = (e) => {
+      activeTouches.delete(e.pointerId);
+      if (activeTouches.size === 0) {
+        this.isDragging = false;
+        initialPinchDist = 0;
+      } else if (activeTouches.size === 1) {
+        const remaining = Array.from(activeTouches.values())[0];
+        this.previousPointerPos = { x: remaining.x, y: remaining.y };
+        this.isDragging = true;
+      }
+    };
+
+    window.addEventListener('pointerup', onPointerUpOrCancel);
+    window.addEventListener('pointercancel', onPointerUpOrCancel);
+
+    // Wheel zoom dolly in Explore mode (does not disable browser page zoom outside canvas)
+    canvas.addEventListener('wheel', (e) => {
+      if (this.mode === 'explore') {
+        e.preventDefault();
+        const dollyScale = e.deltaY > 0 ? 1.08 : 0.92;
+        this.exploreSpherical.radius = THREE.MathUtils.clamp(
+          this.exploreSpherical.radius * dollyScale,
+          35,
+          800
+        );
+        this.updateExploreCameraPosition();
+      }
+    }, { passive: false });
 
     // Pointer click for raycast selection
     window.addEventListener('click', (e) => {
-      // Ignore clicks on UI cards or buttons
-      if (e.target.closest('button, a, dialog, input, .ui-panel')) return;
+      if (e.target.closest('button, a, dialog, input, .ui-panel, .explore-hud')) return;
+      if (this.pickingPointer.x === -999) return;
 
-      this.raycaster.setFromCamera(this.mouse, this.camera);
+      this.raycaster.setFromCamera(this.pickingPointer, this.camera);
       const intersects = this.raycaster.intersectObjects(this.clickableObjects);
 
       if (intersects.length > 0) {
@@ -337,136 +262,220 @@ export class UniverseScene {
       }
     });
 
+    // Escape key exits Explore mode and returns to Guided mode
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.mode === 'explore') {
+        this.setMode('guided');
+      }
+    });
+
     window.addEventListener('resize', () => this.resize(), { passive: true });
   }
 
-  focusOnBody(bodyInput) {
-    let targetObj = typeof bodyInput === 'string'
-      ? (this.moons[bodyInput] || this.planets[bodyInput])
-      : bodyInput;
+  setMode(mode) {
+    if (this.mode === mode) return;
+    this.mode = mode;
+    window.dispatchEvent(new CustomEvent('universe:mode-changed', { detail: { mode } }));
 
-    if (bodyInput === 'sun') {
-      this.focusedTarget = {
-        getPosition: () => new THREE.Vector3(0, 0, 0),
-        offset: new THREE.Vector3(0, 28, 65)
-      };
-      return;
-    }
-
-    if (!targetObj) return;
-
-    // Calculate 3/4 dramatic vantage displaying both sunlit limb and glowing night terminator
-    const bodyPos = targetObj.getPosition();
-    const sunPos = this.sun.group.position;
-    const sunToBody = new THREE.Vector3().subVectors(bodyPos, sunPos).normalize();
-    // Perpendicular vector for 3/4 angle
-    const sideVec = new THREE.Vector3(-sunToBody.z, 0.42, sunToBody.x).normalize();
-
-    const offsetDist = (targetObj.config?.radius || 10) * 3.5 + 18;
-    const offset = sunToBody.clone().multiplyScalar(0.65)
-      .add(sideVec.multiplyScalar(0.75))
-      .normalize()
-      .multiplyScalar(offsetDist);
-
-    this.focusedTarget = {
-      targetObj,
-      getPosition: () => targetObj.getPosition(),
-      offset
-    };
-
-    if (targetObj.highlight) {
-      targetObj.highlight(true);
+    if (mode === 'explore') {
+      // Sync explore spherical from current camera position
+      const offset = new THREE.Vector3().subVectors(this.currentCamPos, this.exploreTarget);
+      this.exploreSpherical.setFromVector3(offset);
+      this.exploreSpherical.radius = THREE.MathUtils.clamp(this.exploreSpherical.radius, 35, 800);
+      this.exploreSpherical.phi = THREE.MathUtils.clamp(this.exploreSpherical.phi, 0.15, Math.PI - 0.2);
     }
   }
 
-  clearFocus() {
-    if (this.focusedTarget && this.focusedTarget.targetObj && this.focusedTarget.targetObj.highlight) {
-      this.focusedTarget.targetObj.highlight(false);
-    }
-    this.focusedTarget = null;
+  updateExploreCameraPosition() {
+    this.exploreSpherical.makeSafe();
+    this.targetCamPos.setFromSpherical(this.exploreSpherical).add(this.exploreTarget);
+    this.targetLookAt.copy(this.exploreTarget);
+  }
+
+  // Explore HUD Operations
+  zoomIn() {
+    this.exploreSpherical.radius = Math.max(35, this.exploreSpherical.radius * 0.8);
+    this.updateExploreCameraPosition();
+  }
+
+  zoomOut() {
+    this.exploreSpherical.radius = Math.min(800, this.exploreSpherical.radius * 1.25);
+    this.updateExploreCameraPosition();
+  }
+
+  resetHome() {
+    this.exploreTarget.set(0, 0, 0);
+    this.exploreSpherical.set(420, Math.PI * 0.35, 0);
+    this.updateExploreCameraPosition();
   }
 
   setFlightProgress(progress) {
-    this.splineProgress = Math.max(0, Math.min(1, progress));
+    this.splineProgress = THREE.MathUtils.clamp(progress, 0, 1);
   }
 
   setQualityScale(scale) {
-    this.renderer.setPixelRatio(this.dpr * scale);
+    const effectiveDpr = Math.max(1, this.dpr * scale);
+    this.renderer.setPixelRatio(effectiveDpr);
   }
 
   resize() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.isMobile = window.innerWidth < 768;
-
+    this.isMobile = this.width < 768;
     this.camera.aspect = this.width / this.height;
     this.camera.updateProjectionMatrix();
-
     this.renderer.setSize(this.width, this.height);
   }
 
-  update(dt, timestamp) {
-    const time = (timestamp || performance.now()) * 0.001;
-    const sunPos = this.sun.group.position;
+  /**
+   * Composed target-relative camera framing
+   * Keeps target composed at 25-35 deg elevation with reading card clearance
+   */
+  calculateComposedFraming(targetObj, cameraFraming) {
+    const bodyPos = targetObj.getPosition();
+    const elevDeg = cameraFraming?.elevationDeg || 30;
+    const elevRad = (elevDeg * Math.PI) / 180;
+    const dist = cameraFraming?.distance || 38;
 
-    // 1. Advance Celestial Orbits & GPU Shaders
-    Object.values(this.planets).forEach(p => p.update(dt, time, sunPos));
-    Object.values(this.moons).forEach(m => m.update(dt, time));
+    const isDesktop = this.width >= 768;
 
-    // 2. Sun Convection Granulation & Starfield
+    // Angle relative to central star
+    const bodyAngle = Math.atan2(bodyPos.z, bodyPos.x);
+    const camAngle = bodyAngle + 0.45; // 3/4 vantage showing illuminated limb
+
+    const camX = bodyPos.x + Math.cos(camAngle) * dist * Math.cos(elevRad);
+    const camY = bodyPos.y + dist * Math.sin(elevRad);
+    const camZ = bodyPos.z + Math.sin(camAngle) * dist * Math.cos(elevRad);
+    const cameraPos = new THREE.Vector3(camX, camY, camZ);
+
+    const lookTarget = bodyPos.clone();
+    if (isDesktop) {
+      // True camera right vector: cross(forward, up)
+      // Looking to the RIGHT of the target causes Three.js camera to pan right,
+      // composing the celestial body gracefully on the LEFT in the open scene area,
+      // completely clear of the right-docked reading card
+      const forward = new THREE.Vector3().subVectors(bodyPos, cameraPos).normalize();
+      const camRight = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+      lookTarget.addScaledVector(camRight, dist * 0.32);
+    }
+
+    return {
+      cameraPos,
+      lookAt: lookTarget
+    };
+  }
+
+  focusOnBody(bodyInput, customFraming) {
+    if (bodyInput === 'sun') {
+      this.focusedTarget = {
+        getPosition: () => new THREE.Vector3(0, 0, 0),
+        offset: new THREE.Vector3(0, 28, 65),
+        isSun: true
+      };
+      this.exploreTarget.set(0, 0, 0);
+      return;
+    }
+
+    let targetObj = null;
+    if (typeof bodyInput === 'string') {
+      targetObj = this.moons[bodyInput] || this.planets[bodyInput];
+    } else if (bodyInput && typeof bodyInput.getPosition === 'function') {
+      targetObj = bodyInput;
+    } else if (bodyInput?.id) {
+      targetObj = this.moons[bodyInput.id] || this.planets[bodyInput.id];
+    }
+
+    if (!targetObj) return;
+
+    this.focusedTarget = {
+      targetObj,
+      customFraming,
+      getPosition: () => targetObj.getPosition()
+    };
+    this.exploreTarget.copy(targetObj.getPosition());
+  }
+
+  clearFocus() {
+    this.focusedTarget = null;
+  }
+
+  update(dt, time) {
+    // 1. Central Sun Convection & Pulse
     this.sun.update(time, this.camera);
+
+    // 2. Starfield Subtle Twinkle
     this.starfield.update(time);
 
-    // 3. Raycast Hover Feedback
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.clickableObjects);
+    // 3. Update Planetary Keplerian Orbits
+    Object.values(this.planets).forEach(planet => planet.update(dt));
+    Object.values(this.moons).forEach(moon => moon.update(dt));
 
-    if (intersects.length > 0) {
-      const hit = intersects[0].object;
-      if (this.hoveredObject !== hit) {
-        if (this.hoveredObject && this.hoveredObject.userData.highlightFn) {
-          this.hoveredObject.userData.highlightFn(false);
+    // 4. Interactive Hover Raycast
+    if (this.hasPointerMoved && this.pickingPointer.x !== -999) {
+      this.raycaster.setFromCamera(this.pickingPointer, this.camera);
+      const hits = this.raycaster.intersectObjects(this.clickableObjects);
+      if (hits.length > 0) {
+        const hit = hits[0].object;
+        if (this.hoveredObject !== hit) {
+          this.hoveredObject = hit;
+          document.body.style.cursor = 'pointer';
         }
-        this.hoveredObject = hit;
-        document.body.style.cursor = 'pointer';
-      }
-    } else {
-      if (this.hoveredObject) {
-        document.body.style.cursor = 'default';
-        this.hoveredObject = null;
-      }
-    }
-
-    // 4. Camera Position Interpolation
-    if (this.focusedTarget) {
-      // Zoomed in on a focused planet or moon (3/4 vantage)
-      const bodyPos = this.focusedTarget.getPosition();
-      this.targetCamPos.copy(bodyPos).add(this.focusedTarget.offset);
-      this.targetLookAt.copy(bodyPos);
-
-      this.currentCamPos.lerp(this.targetCamPos, 0.06);
-      this.currentLookAt.lerp(this.targetLookAt, 0.07);
-    } else {
-      // Camera flying along spline scrubbed by ScrollTrigger
-      const splinePoint = this.flightSpline.getPointAt(this.splineProgress);
-      // Subtle mouse parallax tilt
-      this.targetCamPos.copy(splinePoint).add(
-        this.tempVec.set(this.mouse.x * 12, this.mouse.y * 8, 0)
-      );
-
-      // Look slightly ahead on the spline
-      const lookProgress = Math.min(1.0, this.splineProgress + 0.08);
-      const splineLook = this.flightSpline.getPointAt(lookProgress);
-      // When at the start, look directly at the Sun
-      if (this.splineProgress < 0.15) {
-        this.targetLookAt.set(0, 0, 0);
       } else {
-        this.targetLookAt.copy(splineLook);
+        if (this.hoveredObject) {
+          document.body.style.cursor = 'default';
+          this.hoveredObject = null;
+        }
       }
-
-      this.currentCamPos.lerp(this.targetCamPos, 0.08);
-      this.currentLookAt.lerp(this.targetLookAt, 0.08);
     }
+
+    // 5. Camera Motion Logic (Guided vs Explore)
+    if (this.mode === 'explore') {
+      // Free bounded exploration
+      this.updateExploreCameraPosition();
+    } else {
+      // Guided Tour
+      if (this.focusedTarget) {
+        if (this.focusedTarget.isSun) {
+          this.targetCamPos.set(0, 28, 65);
+          this.targetLookAt.set(0, 0, 0);
+        } else {
+          const framing = this.calculateComposedFraming(
+            this.focusedTarget.targetObj,
+            this.focusedTarget.customFraming
+          );
+          this.targetCamPos.copy(framing.cameraPos);
+          this.targetLookAt.copy(framing.lookAt);
+        }
+      } else {
+        // Spline-driven flight path scrubbed by ScrollTrigger
+        const splinePoint = this.flightSpline.getPointAt(this.splineProgress);
+
+        // Safe parallax offset: initialized to 0, clamped [-1, 1], 0 for coarse pointers
+        const parallaxX = this.hasPointerMoved ? this.parallax.x * 12 : 0;
+        const parallaxY = this.hasPointerMoved ? this.parallax.y * 8 : 0;
+        this.targetCamPos.copy(splinePoint).add(
+          this.tempVec.set(parallaxX, parallaxY, 0)
+        );
+
+        // Look slightly ahead on the spline
+        const lookProgress = Math.min(1.0, this.splineProgress + 0.08);
+        const splineLook = this.flightSpline.getPointAt(lookProgress);
+
+        if (this.splineProgress < 0.12) {
+          this.targetLookAt.set(0, 0, 0); // Focus on central Sun during hero
+        } else {
+          this.targetLookAt.copy(splineLook);
+        }
+      }
+    }
+
+    // 6. Time-based Exponential Damping: 1 - exp(-lambda * dt) (Frame-rate independent)
+    const dtClamped = Math.min(dt, 0.1);
+    const camDamping = 1 - Math.exp(-4.5 * dtClamped);
+    const lookDamping = 1 - Math.exp(-5.5 * dtClamped);
+
+    this.currentCamPos.lerp(this.targetCamPos, camDamping);
+    this.currentLookAt.lerp(this.targetLookAt, lookDamping);
 
     this.camera.position.copy(this.currentCamPos);
     this.camera.lookAt(this.currentLookAt);

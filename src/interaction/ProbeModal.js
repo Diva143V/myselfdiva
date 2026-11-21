@@ -8,7 +8,82 @@
  * - Returns focus seamlessly to invoker on dismiss
  */
 
+import { GALAXY_CONFIG } from '../config/galaxyConfig.js';
+
 export const CELESTIAL_PROBE_DATABASE = {
+  sun: {
+    id: 'sun',
+    name: 'Sun // Diwakar',
+    classification: 'SOLAR PROTOCOL // SYSTEM CORE',
+    orbit: 'Center // Galactic Origin',
+    status: 'Core Host // Active Identity',
+    problem: 'Traditional technical portfolios are fragmented across resumes, GitHub repos, and shallow static bullet points that fail to convey architectural depth.',
+    whatItDoes: 'Acts as the central heliocentric gravity core of the Diva Universe, orchestrating real-time Keplerian orbital physics, adaptive GPU governance, and deep-space cinematic lighting across all technology domains.',
+    stack: ['Three.js', 'WebGL 2', 'GSAP', 'Lenis', 'Vite', 'postprocessing'],
+    metric: 'Architectural targets: 60fps simulation budget, < 100 draw calls, < 3 MB bundle; dynamically regulated by AdaptiveGovernor based on device performance.',
+    sourceUrl: 'https://github.com/Diva143V/myselfdiva'
+  },
+  python: {
+    id: 'python',
+    name: 'Python System',
+    classification: 'ORBITAL ANCHOR // BIOMEDICAL AI',
+    orbit: 'Orbit 1 · Python',
+    status: 'Active Domain',
+    problem: 'Biomedical knowledge graphs and clinical trial registries require robust deterministic pipelines and asynchronous literature collection.',
+    whatItDoes: 'Core language for AI literature synthesis, local embedding models, graph traversal algorithms, and automated bioinformatics pipelines.',
+    stack: ['Python 3.11+', 'FastAPI', 'ChromaDB', 'Reflex', 'Pytest'],
+    metric: 'Powers Griffin Bio (10 modular collectors) and SyGriffin neoantigen discovery tools.',
+    sourceUrl: 'https://github.com/Diva143V/Griffin'
+  },
+  csharp: {
+    id: 'csharp',
+    name: 'C# / .NET System',
+    classification: 'ORBITAL ANCHOR // DESKTOP SYSTEMS',
+    orbit: 'Orbit 2 · C# / .NET',
+    status: 'Active Domain',
+    problem: 'Windows system audio and Live Captions hooks require low-overhead native interop and high-frequency UI updates without dropping frames.',
+    whatItDoes: 'Architecture anchor for native Windows accessibility software, WPF overlays, hardware acceleration, and multi-threaded desktop software.',
+    stack: ['C#', '.NET 8', 'WPF', 'Windows API', 'SQLite'],
+    metric: 'Powers LiveSubs single self-contained .exe with real-time API translation hooks.',
+    sourceUrl: 'https://github.com/Diva143V/LiveSubs',
+    releaseUrl: 'https://github.com/Diva143V/LiveSubs/releases'
+  },
+  rust: {
+    id: 'rust',
+    name: 'Rust System',
+    classification: 'ORBITAL ANCHOR // SYSTEMS & MCP',
+    orbit: 'Orbit 3 · Rust',
+    status: 'Active Domain',
+    problem: 'LLM agents require sub-millisecond causal context retrieval and memory persistence without memory corruption or runtime crashes.',
+    whatItDoes: 'Foundation for high-performance systems programming, MCP protocol servers, graph database indexing, and Tauri cross-platform software.',
+    stack: ['Rust 1.85+', 'PetGraph', 'SQLite FTS5', 'Tauri v2', 'Tokio'],
+    metric: 'Powers Knox MCP server with 8 focused tools and strict token budgets.',
+    sourceUrl: 'https://github.com/Diva143V/Knox'
+  },
+  typescript: {
+    id: 'typescript',
+    name: 'TypeScript System',
+    classification: 'ORBITAL ANCHOR // INTERFACES & WEBGL',
+    orbit: 'Orbit 4 · TypeScript',
+    status: 'Active Domain',
+    problem: 'Interactive 3D environments demand strict type-safety across custom shader uniforms, physics loops, and complex DOM overlays.',
+    whatItDoes: 'Powers modern frontend architecture, Three.js 3D graphics, reactive user interfaces, and client-side tooling.',
+    stack: ['TypeScript', 'Three.js', 'Vite', 'React 19', 'GSAP'],
+    metric: 'Architectural foundation for myselfdiva 3D universe and interactive web applications.',
+    sourceUrl: 'https://github.com/Diva143V/myselfdiva'
+  },
+  cpp: {
+    id: 'cpp',
+    name: 'C++ System',
+    classification: 'ORBITAL ANCHOR // LOW-LEVEL ALGORITHMS',
+    orbit: 'Orbit 5 · C++',
+    status: 'Active Domain',
+    problem: 'Time-critical algorithmic competitions require microsecond-level cache locality and manual memory optimization.',
+    whatItDoes: 'High-performance competitive programming, custom search data structures, branch-prediction tuning, and memory layout optimization.',
+    stack: ['C++20', 'Data Structures', 'Competitive Programming', 'Algorithms'],
+    metric: '1st place solver in HackMe 2024 optimization challenge.',
+    sourceUrl: 'https://github.com/Diva143V'
+  },
   livesubs: {
     id: 'livesubs',
     name: 'LiveSubs',
@@ -91,7 +166,7 @@ export const CELESTIAL_PROBE_DATABASE = {
     problem: 'Flat 2D diagram portfolios fail to communicate real-time systems depth.',
     whatItDoes: 'Rebuilds personal identity as a realistic cinematic WebGL 3D universe with PBR atmospheres and Keplerian orbital drift.',
     stack: ['Three.js', 'Vite', 'GSAP', 'Lenis', 'postprocessing'],
-    metric: 'Full 60fps orbital physics simulation; adaptive quality governor; under 100 draw calls; total page payload < 3 MB.',
+    metric: 'Architectural targets: 60fps simulation budget, under 100 draw calls, and total bundle payload < 3 MB; dynamically governed by AdaptiveGovernor based on device performance.',
     sourceUrl: 'https://github.com/Diva143V/myselfdiva'
   },
   hackme: {
@@ -180,7 +255,8 @@ export class ProbeModal {
   }
 
   open(celestialId) {
-    const data = CELESTIAL_PROBE_DATABASE[celestialId];
+    const key = (celestialId || '').toLowerCase().trim();
+    const data = CELESTIAL_PROBE_DATABASE[key];
     if (!data || !this.modal) return;
 
     // Populate UI fields

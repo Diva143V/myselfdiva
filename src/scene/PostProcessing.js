@@ -1,11 +1,11 @@
 /**
  * PostProcessing.js — Cinematic Post-Processing Pipeline (pmndrs/postprocessing)
  * 
- * Merged into a single pass:
- * - Selective HDR Bloom (luminance threshold catches Sun core, corona, and lava veins)
- * - SMAA edge antialiasing
- * - Subtle peripheral chromatic aberration
+ * - RenderPass: Scene render to HalfFloat framebuffer
+ * - Selective HDR Bloom (restrained luminance threshold for core and corona)
  * - Light cinematic vignette
+ * - SMAA edge antialiasing
+ * - Graceful cleanup & intentional fallback
  */
 
 import * as THREE from 'three';
@@ -15,7 +15,6 @@ import {
   EffectPass,
   BloomEffect,
   VignetteEffect,
-  ChromaticAberrationEffect,
   SMAAEffect
 } from 'postprocessing';
 
@@ -34,42 +33,38 @@ export function setupPostProcessing(renderer, scene, camera) {
     const renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
 
-    // 2. Selective HDR Bloom
+    // 2. Selective Restrained HDR Bloom
     bloomEffect = new BloomEffect({
-      luminanceThreshold: 0.82,
-      luminanceSmoothing: 0.25,
-      intensity: 1.6,
+      luminanceThreshold: 0.85,
+      luminanceSmoothing: 0.2,
+      intensity: 1.0,
       mipmapBlur: true
     });
 
     // 3. Subtle Lens Vignette
     const vignetteEffect = new VignetteEffect({
       esv: false,
-      offset: 0.28,
-      darkness: 0.48
+      offset: 0.32,
+      darkness: 0.42
     });
 
-    // 4. Peripheral Chromatic Aberration
-    const chromaticAberrationEffect = new ChromaticAberrationEffect({
-      offset: new THREE.Vector2(0.0012, 0.0012),
-      radialModulation: true,
-      modulationOffset: 0.25
-    });
-
-    // 5. SMAA Antialiasing Pass
+    // 4. SMAA Antialiasing Pass
     const smaaEffect = new SMAAEffect();
 
-    // Combine all effects into a single GPU pass to maximize performance
+    // Combine compatible effects into a single GPU pass to maximize performance
     const effectPass = new EffectPass(
       camera,
       bloomEffect,
-      chromaticAberrationEffect,
       vignetteEffect,
       smaaEffect
     );
     composer.addPass(effectPass);
   } catch (err) {
     console.warn('Post-processing fallback to standard pipeline:', err);
+    if (composer) {
+      try { composer.dispose(); } catch (_) {}
+      composer = null;
+    }
     isPostProcessingEnabled = false;
   }
 
@@ -82,11 +77,11 @@ export function setupPostProcessing(renderer, scene, camera) {
       // Adaptive quality governor levels: 'high', 'medium', 'low'
       if (!isPostProcessingEnabled || !bloomEffect) return;
       if (level === 'low') {
-        bloomEffect.intensity = 0.8;
+        bloomEffect.intensity = 0.6;
       } else if (level === 'medium') {
-        bloomEffect.intensity = 1.2;
+        bloomEffect.intensity = 0.85;
       } else {
-        bloomEffect.intensity = 1.6;
+        bloomEffect.intensity = 1.0;
       }
     },
     resize(width, height) {
@@ -96,7 +91,15 @@ export function setupPostProcessing(renderer, scene, camera) {
     },
     render(dt) {
       if (isPostProcessingEnabled && composer) {
-        composer.render(dt);
+        try {
+          composer.render(dt);
+        } catch (err) {
+          console.warn('Post-processing runtime error, falling back to standard renderer:', err);
+          isPostProcessingEnabled = false;
+          try { composer.dispose(); } catch (_) {}
+          composer = null;
+          renderer.render(scene, camera);
+        }
       } else {
         renderer.render(scene, camera);
       }

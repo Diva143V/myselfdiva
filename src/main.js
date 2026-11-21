@@ -1,7 +1,14 @@
 /**
  * main.js — Application Orchestrator & WebGL 3D Universe Runtime
+ * 
+ * - Single source of truth for runtime render state (tab visibility + user pause)
+ * - Dynamic celestial label registration from GALAXY_CONFIG
+ * - Guided Mode vs Explore Mode HUD integration
+ * - Mobile responsive navigation menu handler
+ * - Robust error handling and WCAG 2.2 compliant state controls
  */
 
+import { GALAXY_CONFIG } from './config/galaxyConfig.js';
 import { UniverseScene } from './scene/UniverseScene.js';
 import { setupPostProcessing } from './scene/PostProcessing.js';
 import { AdaptiveGovernor } from './interaction/AdaptiveGovernor.js';
@@ -57,54 +64,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Initialize 3D Label Manager with Collision Avoidance
   const labelManager = new LabelManager(labelContainer);
 
-  // Register celestial bodies with priority-weighted collision culling
-  labelManager.register('sun', 'Sun // Diwakar', 'sun', 100, () => universeScene.sun.group.position, (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
+  // Dynamically register central Sun from GALAXY_CONFIG
+  labelManager.register(
+    GALAXY_CONFIG.sun.id,
+    GALAXY_CONFIG.sun.name,
+    'sun',
+    GALAXY_CONFIG.sun.priority,
+    () => universeScene.sun.group.position,
+    (id) => {
+      window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
+    }
+  );
+
+  // Dynamically register Planets from GALAXY_CONFIG
+  GALAXY_CONFIG.planets.forEach(p => {
+    labelManager.register(
+      p.id,
+      `${p.name} (Orbit ${p.orbitIndex})`,
+      'planet',
+      p.priority,
+      () => universeScene.planets[p.id].getPosition(),
+      (id) => {
+        window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
+      }
+    );
   });
 
-  // 5 Planets
-  labelManager.register('python', 'Python (Orbit 1)', 'planet', 80, () => universeScene.planets.python.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-  });
-  labelManager.register('csharp', 'C# / .NET (Orbit 2)', 'planet', 80, () => universeScene.planets.csharp.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-  });
-  labelManager.register('rust', 'Rust (Orbit 3)', 'planet', 80, () => universeScene.planets.rust.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-  });
-  labelManager.register('typescript', 'TypeScript (Orbit 4)', 'planet', 80, () => universeScene.planets.typescript.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-  });
-  labelManager.register('cpp', 'C++ (Orbit 5)', 'planet', 80, () => universeScene.planets.cpp.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-  });
-
-  // 4 Major Moons (Higher priority than minor moons)
-  labelManager.register('livesubs', 'LiveSubs', 'moon-major', 90, () => universeScene.moons.livesubs.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('griffin', 'Griffin Bio', 'moon-major', 90, () => universeScene.moons.griffin.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('knox', 'Knox', 'moon-major', 90, () => universeScene.moons.knox.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('sygriffin', 'SyGriffin', 'moon-major', 90, () => universeScene.moons.sygriffin.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-
-  // Minor Moons
-  labelManager.register('polaris', 'Polaris', 'moon-minor', 50, () => universeScene.moons.polaris.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('sita', 'Sita', 'moon-minor', 50, () => universeScene.moons.sita.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('myselfdiva', 'myselfdiva', 'moon-minor', 50, () => universeScene.moons.myselfdiva.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-  });
-  labelManager.register('hackme', 'HackMe', 'moon-minor', 50, () => universeScene.moons.hackme.getPosition(), (id) => {
-    window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
+  // Dynamically register Moons from GALAXY_CONFIG
+  GALAXY_CONFIG.moons.forEach(m => {
+    const type = m.isMajor ? 'moon-major' : 'moon-minor';
+    labelManager.register(
+      m.id,
+      m.name,
+      type,
+      m.priority,
+      () => universeScene.moons[m.id].getPosition(),
+      (id) => {
+        window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
+      }
+    );
   });
 
   // 5. Initialize Probe Modal
@@ -112,6 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 6. Initialize Flight Controller & Choreography
   const flightController = new FlightController(universeScene, probeModal);
+
+  // 7. Setup Explore Mode HUD & Controls
+  setupExploreHUD(universeScene, probeModal);
+
+  // 8. Setup Mobile Destination Navigation Menu
+  setupMobileNav();
 
   // Expose for runtime telemetry & benchmark testing
   window.__UNIVERSE__ = {
@@ -123,10 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
     probeModal
   };
 
-  // 7. Render Loop with Delta Time and Zero Allocation
+  // 9. Render Loop with Delta Time and Unified State Decision
   let animId = null;
   let lastTime = performance.now();
-  let isRunning = true;
+  let isRunning = false;
+  let isUserPaused = false;
+  let isTabHidden = document.hidden;
 
   function renderLoop(now) {
     if (!isRunning) return;
@@ -137,10 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Monitor performance
     governor.tick(now);
 
-    // Update scene physics
+    // Update scene physics & Keplerian positions
     universeScene.update(dt, now);
 
-    // Update collision-free 3D labels
+    // Update collision-free 3D labels with UI exclusion culling
     labelManager.update(universeScene.camera, universeScene.width, universeScene.height);
 
     // Post-processing render
@@ -149,43 +155,55 @@ document.addEventListener('DOMContentLoaded', () => {
     animId = requestAnimationFrame(renderLoop);
   }
 
-  animId = requestAnimationFrame(renderLoop);
+  function updateRunState() {
+    const shouldRun = !isUserPaused && !isTabHidden;
 
-  // Pause when tab hidden
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      isRunning = false;
-      if (animId) cancelAnimationFrame(animId);
-    } else {
+    if (shouldRun && !isRunning) {
       isRunning = true;
       lastTime = performance.now();
+      governor.resumeClock(lastTime);
       animId = requestAnimationFrame(renderLoop);
+    } else if (!shouldRun && isRunning) {
+      isRunning = false;
+      governor.notifySuspension();
+      if (animId) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
     }
+  }
+
+  // Start initial loop
+  updateRunState();
+
+  // Unified Tab Visibility Change Handler
+  document.addEventListener('visibilitychange', () => {
+    isTabHidden = document.hidden;
+    updateRunState();
   });
 
   // Window resize handler
   window.addEventListener('resize', () => {
     universeScene.resize();
     postProcessing.resize(universeScene.width, universeScene.height);
+    labelManager.remeasure();
   }, { passive: true });
 
   // WCAG 2.2.2 Pause Motion Button
   const pauseBtn = document.getElementById('pause-motion-btn');
   if (pauseBtn) {
-    let paused = false;
     pauseBtn.addEventListener('click', () => {
-      paused = !paused;
-      if (paused) {
-        isRunning = false;
+      isUserPaused = !isUserPaused;
+      if (isUserPaused) {
         pauseBtn.querySelector('.label').textContent = 'Resume Flight';
         pauseBtn.setAttribute('aria-label', 'Resume orbital 3D flight');
+        pauseBtn.classList.add('is-paused');
       } else {
-        isRunning = true;
-        lastTime = performance.now();
-        animId = requestAnimationFrame(renderLoop);
         pauseBtn.querySelector('.label').textContent = 'Pause Flight';
         pauseBtn.setAttribute('aria-label', 'Pause orbital 3D flight');
+        pauseBtn.classList.remove('is-paused');
       }
+      updateRunState();
     });
   }
 
@@ -204,6 +222,119 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(updateClock, 1000);
   }
 });
+
+function setupExploreHUD(universeScene, probeModal) {
+  const toggleBtn = document.getElementById('hud-mode-toggle');
+  const controlsGroup = document.getElementById('hud-controls-group');
+  const zoomInBtn = document.getElementById('hud-zoom-in');
+  const zoomOutBtn = document.getElementById('hud-zoom-out');
+  const focusBtn = document.getElementById('hud-focus');
+  const homeBtn = document.getElementById('hud-home');
+  const exitBtn = document.getElementById('hud-exit');
+  const jumpSelect = document.getElementById('hud-celestial-select');
+
+  if (!toggleBtn) return;
+
+  // Populate celestial quick jump selector from GALAXY_CONFIG
+  if (jumpSelect && jumpSelect.options.length <= 1) {
+    const sunOpt = document.createElement('option');
+    sunOpt.value = GALAXY_CONFIG.sun.id;
+    sunOpt.textContent = `★ ${GALAXY_CONFIG.sun.name}`;
+    jumpSelect.appendChild(sunOpt);
+
+    const planetGroup = document.createElement('optgroup');
+    planetGroup.label = 'Language Planets';
+    GALAXY_CONFIG.planets.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = `♁ ${p.name} (Orbit ${p.orbitIndex})`;
+      planetGroup.appendChild(opt);
+    });
+    jumpSelect.appendChild(planetGroup);
+
+    const moonGroup = document.createElement('optgroup');
+    moonGroup.label = 'Project Moons';
+    GALAXY_CONFIG.moons.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `☾ ${m.name}${m.isMajor ? ' [Case Study]' : ''}`;
+      moonGroup.appendChild(opt);
+    });
+    jumpSelect.appendChild(moonGroup);
+
+    jumpSelect.addEventListener('change', () => {
+      const targetId = jumpSelect.value;
+      if (targetId) {
+        universeScene.focusOnBody(targetId);
+        if (probeModal) {
+          probeModal.open(targetId);
+        }
+      }
+    });
+  }
+
+  function updateHUDView(mode) {
+    const isExplore = mode === 'explore';
+    toggleBtn.setAttribute('aria-pressed', isExplore ? 'true' : 'false');
+    const labelSpan = toggleBtn.querySelector('.hud-mode-text');
+    if (labelSpan) {
+      labelSpan.textContent = isExplore ? 'Explore Mode Active' : 'Explore Galaxy';
+    }
+    toggleBtn.classList.toggle('is-active', isExplore);
+    if (controlsGroup) {
+      if (isExplore) {
+        controlsGroup.removeAttribute('hidden');
+      } else {
+        controlsGroup.setAttribute('hidden', '');
+      }
+    }
+    document.body.classList.toggle('is-explore-mode', isExplore);
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const nextMode = universeScene.mode === 'explore' ? 'guided' : 'explore';
+    universeScene.setMode(nextMode);
+  });
+
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => universeScene.zoomIn());
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => universeScene.zoomOut());
+  if (focusBtn) {
+    focusBtn.addEventListener('click', () => {
+      // Re-center on currently focused target or central Sun
+      if (universeScene.focusedTarget?.targetObj) {
+        universeScene.exploreTarget.copy(universeScene.focusedTarget.getPosition());
+      } else {
+        universeScene.exploreTarget.set(0, 0, 0);
+      }
+      universeScene.updateExploreCameraPosition();
+    });
+  }
+  if (homeBtn) homeBtn.addEventListener('click', () => universeScene.resetHome());
+  if (exitBtn) exitBtn.addEventListener('click', () => universeScene.setMode('guided'));
+
+  window.addEventListener('universe:mode-changed', (e) => {
+    updateHUDView(e.detail.mode);
+  });
+}
+
+function setupMobileNav() {
+  const menuBtn = document.getElementById('mobile-menu-btn');
+  const navLinks = document.querySelector('.nav-links');
+  if (!menuBtn || !navLinks) return;
+
+  menuBtn.addEventListener('click', () => {
+    const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+    menuBtn.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+    navLinks.classList.toggle('is-open', !isExpanded);
+  });
+
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      menuBtn.setAttribute('aria-expanded', 'false');
+      navLinks.classList.remove('is-open');
+    });
+  });
+}
 
 function initStaticFallback() {
   const probeModal = document.getElementById('probe-modal');

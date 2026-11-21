@@ -98,11 +98,32 @@ npm run build
 npx netlify deploy --prod --dir=dist
 ```
 
-### Local Development & Preview
+### Local Development, Verification & Benchmarking
 ```bash
-npm run dev      # Starts Vite HMR dev server at http://localhost:5173
-npm run preview  # Previews production dist/ build at http://localhost:4173
+npm run dev          # Starts Vite HMR dev server at http://localhost:5173
+npm run build        # Production bundling into dist/
+npm run preview      # Previews production dist/ build at http://localhost:4173
+npm run test:verify  # Runs automated 12-test live audit verification suite (Playwright)
+npm run benchmark    # Runs 4x CPU throttle performance profiling & captures screenshots
 ```
+
+---
+
+## 🛠️ Live Audit Fixes & Architectural Upgrades (21 Nov 2026)
+
+All 12 issues from the comprehensive live audit have been rigorously resolved and verified:
+1. **01 · P0 · Camera Range on Cold Load:** Decoupled mouse picking from camera parallax, clamped parallax to $[-1, 1]$, and initialized to $(0, 0)$. Solves camera explosion to $(-11931, -7936, -170)$ on touch/keyboard visitors without mouse move.
+2. **02 · P1 · Layer Isolation & Guided Stepper:** Isolated the hero viewport from the project deck (opacity = 0 at hero). In guided flight, exactly 1 active project card is visible with prev/next steppers, while inactive cards are `inert` and excluded from focus. On phones, cards render in clean linear document flow.
+3. **03 · P1 · 3D Label Centering, UI Exclusion & Sun Occlusion:** Applied CSS `translate(-50%, -50%)` to match projected 2D collision boxes. Added UI exclusion zones, camera forward plane culling, and geometric ray-sphere occlusion testing against the Sun. Culled labels are excluded from tab focus (`tabIndex = -1`).
+4. **04 · P1 · Target-Relative Composed Framing:** Replaced fixed spline points with target-relative composed shots. The target celestial body is framed gracefully in the open left screen area ($\text{NDC } X \approx -0.48$), completely clear of the right-docked reading card.
+5. **05 · P1 · Dual Guided & Explore Modes:** Added explicit **Guided** (page scroll owns camera flight) and **Explore** (free 3D orbit, touch pinch-to-zoom, +, -, Focus, Home buttons, and searchable quick-jump selector) modes. Pressing Escape smoothly returns to Guided mode.
+6. **06 · P1 · Sun Core Anchor & Section Header Clearance:** Fixed Sun Core link to scroll smoothly to Hero top (`scroll = 0`). Added `scroll-margin-top: calc(var(--nav-height) + 2rem)` on all sections.
+7. **07 · P1 · Mobile Responsive Layout (390px & 320px):** Added accessible mobile navigation drawer, stacked card metadata vertically, ensured $\ge 44\text{px}$ touch targets, and verified zero horizontal overflow at 320px.
+8. **08 · P1 · Post-Processing Composer Stabilization:** Restructured `EffectComposer` passes to prevent incompatible effect merging console errors; wrapped render execution in `try/catch` with automated graceful fallback.
+9. **09 · P1 · WCAG 2.2.2 Pause Lifecycle & Static Fallback:** Unified render state so user-paused motion remains paused across tab visibility changes (`document.hidden`). Provided full complete document fallback for `prefers-reduced-motion` and non-WebGL environments.
+10. **10 · P2 · Visual Material Refinements:** Anti-aliased procedural shader veins, soft background dust/star particles, and realistic limb darkening.
+11. **11 · P2 · Time-Based Damping & Percentile Metrics:** Converted all camera interpolation to frame-rate-independent exponential damping ($1 - e^{-\lambda \Delta t}$). Added rolling p50, p95, and p99 frame time percentiles.
+12. **12 · P2 · Authored Galaxy Single Source of Truth:** Dynamically generates clusters, celestial bodies, routes, and labels from a validated config (`src/config/galaxyConfig.js`). Recast performance claims as architectural targets.
 
 ---
 

@@ -82,8 +82,10 @@ async function run() {
   // Ensure output directories exist
   const publicScreenshots = path.resolve(__dirname, '../public/screenshots');
   const distScreenshots = path.resolve(__dirname, '../dist/screenshots');
+  const scratchDir = path.resolve(__dirname, '../scratch');
   fs.mkdirSync(publicScreenshots, { recursive: true });
   fs.mkdirSync(distScreenshots, { recursive: true });
+  fs.mkdirSync(scratchDir, { recursive: true });
 
   const saveScreenshot = async (page, name) => {
     const pubPath = path.join(publicScreenshots, name);
@@ -206,9 +208,14 @@ async function run() {
     // 3. Work Flight Deck (Scroll to Work Section)
     console.log('\nNavigating to Work Section flight deck...');
     await page.evaluate(() => {
-      const workEl = document.getElementById('work');
-      if (workEl) {
-        workEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+      const u = window.__UNIVERSE__;
+      if (u?.flightController) {
+        u.flightController.flyToProgress(0.25);
+      } else {
+        const workEl = document.getElementById('scroll-flight-track') || document.getElementById('work');
+        if (workEl) {
+          workEl.scrollIntoView({ behavior: 'instant', block: 'center' });
+        }
       }
     });
     await page.waitForTimeout(2000);

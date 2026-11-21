@@ -148,9 +148,9 @@ export const SunShader = {
       vec3 surfaceColor = mix(uColorMid, uColorCore, pow(convection, 1.4));
       surfaceColor = mix(uColorLimb, surfaceColor, limbDarkening);
 
-      // Overdrive luminance for selective HDR bloom pass
-      float bloomOverdrive = 1.8 + (1.0 - limbDarkening) * 0.8 + pow(convection, 3.0) * 0.9;
-      vec3 finalColor = surfaceColor * bloomOverdrive;
+      // Controlled emission preserving convective detail and amber limb without white-out clipping
+      float emission = 1.05 + pow(convection, 2.2) * 0.35 + (1.0 - limbDarkening) * 0.25;
+      vec3 finalColor = surfaceColor * emission;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }

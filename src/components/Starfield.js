@@ -11,8 +11,8 @@ export function createStarfield(count = 3400) {
   const sizes = new Float32Array(count);
   const twinkles = new Float32Array(count * 2);
 
-  const radiusMin = 350;
-  const radiusMax = 1200;
+  const radiusMin = 480;
+  const radiusMax = 1400;
 
   for (let i = 0; i < count; i++) {
     // Spherical distribution with slight concentration towards the galactic plane
@@ -37,7 +37,7 @@ export function createStarfield(count = 3400) {
       colors[i * 3] = 0.85;
       colors[i * 3 + 1] = 0.9;
       colors[i * 3 + 2] = 1.0;
-      sizes[i] = 1.2;
+      sizes[i] = 1.0;
       twinkles[i * 2] = 0.8 + Math.random() * 1.5;
       twinkles[i * 2 + 1] = Math.random() * Math.PI * 2;
     } else if (i < count * 0.92) {
@@ -46,15 +46,15 @@ export function createStarfield(count = 3400) {
       colors[i * 3] = isAmber ? 0.98 : 0.92;
       colors[i * 3 + 1] = isAmber ? 0.72 : 0.94;
       colors[i * 3 + 2] = isAmber ? 0.22 : 0.98;
-      sizes[i] = 2.0;
+      sizes[i] = 1.6;
       twinkles[i * 2] = 1.5 + Math.random() * 2.5;
       twinkles[i * 2 + 1] = Math.random() * Math.PI * 2;
     } else {
-      // Layer 3: Foreground brilliant stars
+      // Layer 3: Foreground brilliant stars (restrained size)
       colors[i * 3] = 1.0;
       colors[i * 3 + 1] = 0.98;
       colors[i * 3 + 2] = 0.92;
-      sizes[i] = 3.6;
+      sizes[i] = 2.4;
       twinkles[i * 2] = 2.0 + Math.random() * 3.0;
       twinkles[i * 2 + 1] = Math.random() * Math.PI * 2;
     }
@@ -145,11 +145,26 @@ export function createStarfield(count = 3400) {
   nebulaGeo.setAttribute('position', new THREE.BufferAttribute(nebPos, 3));
   nebulaGeo.setAttribute('color', new THREE.BufferAttribute(nebColors, 3));
 
+  // Procedural soft circular dust texture
+  const dustCanvas = document.createElement('canvas');
+  dustCanvas.width = 64;
+  dustCanvas.height = 64;
+  const dCtx = dustCanvas.getContext('2d');
+  const dGrad = dCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  dGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+  dGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.35)');
+  dGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.08)');
+  dGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  dCtx.fillStyle = dGrad;
+  dCtx.fillRect(0, 0, 64, 64);
+  const dustTexture = new THREE.CanvasTexture(dustCanvas);
+
   const nebulaMat = new THREE.PointsMaterial({
-    size: 90,
+    size: 28,
+    map: dustTexture,
     vertexColors: true,
     transparent: true,
-    opacity: 0.18,
+    opacity: 0.09,
     depthWrite: false,
     blending: THREE.AdditiveBlending
   });
