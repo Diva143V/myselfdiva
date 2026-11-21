@@ -4,44 +4,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Diwakar Venkat Peddada — Personal Universe</title>
+  <title>Diwakar Venkat Peddada — 3D Personal Universe</title>
   <meta name="description"
-    content="Personal portfolio of Diwakar Venkat Peddada (Diva) — AI developer and software engineer. Languages are planets, projects are moons, and Diwakar is the sun at the center. LiveSubs, Griffin Bio, Knox, SyGriffin.">
+    content="Personal portfolio of Diwakar Venkat Peddada (Diva) — AI developer and software engineer. Realistic cinematic WebGL 3D universe: languages are planets, projects are moons, and Diwakar is the sun. LiveSubs, Griffin Bio, Knox, SyGriffin.">
   <meta name="author" content="Diwakar Venkat Peddada">
   <meta name="theme-color" content="#06080d">
   <link rel="canonical" href="https://myselfdiva.netlify.app/">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://myselfdiva.netlify.app/">
-  <meta property="og:title" content="Diwakar Venkat Peddada — Personal Universe">
+  <meta property="og:title" content="Diwakar Venkat Peddada — 3D Personal Universe">
   <meta property="og:description"
-    content="Languages are planets. Projects are moons. Diwakar is the sun at the center. High-performance software, AI applications, and live systems.">
+    content="Languages are planets. Projects are moons. Diwakar is the sun. A realistic cinematic WebGL 3D universe you fly through.">
   <meta property="og:site_name" content="Diwakar Venkat Peddada">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Diwakar Venkat Peddada — Personal Universe">
+  <meta name="twitter:title" content="Diwakar Venkat Peddada — 3D Personal Universe">
   <meta name="twitter:description"
-    content="Languages are planets. Projects are moons. Diwakar is the sun at the center.">
+    content="Languages are planets. Projects are moons. Diwakar is the sun. A realistic cinematic WebGL 3D universe you fly through.">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Space Grotesk (Display) & JetBrains Mono (Readouts) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="assets/css/universe.css">
+  <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
-  <!-- Fixed Cosmic Starfield -->
-  <canvas id="starfield-canvas" aria-hidden="true"></canvas>
+  <!-- Fullscreen 3D WebGL Canvas Layer -->
+  <div id="webgl-universe-container" aria-hidden="true"></div>
 
-  <!-- ==================== HEADER & NAVIGATION ==================== -->
+  <!-- Collision-Free 3D Label Overlay Layer -->
+  <div id="labels-3d-overlay" aria-hidden="true"></div>
+
+  <!-- Staged Ignition Black Curtain (Fades on initial load) -->
+  <div id="ignition-curtain" aria-hidden="true"></div>
+
+  <!-- ==================== NAVIGATION ==================== -->
   <header class="nav-header">
     <div class="wrap nav-inner">
       <a class="brand-solar" href="#hero">
@@ -49,48 +54,33 @@
         <span>Diwakar</span>
       </a>
 
-      <nav class="nav-links" aria-label="Celestial Sections">
-        <a href="#system-map">System Map</a>
-        <a href="#work">Work</a>
+      <nav class="nav-links" aria-label="Flight Destinations">
+        <a href="#hero" data-flight-step="0">Sun Core</a>
+        <a href="#scroll-flight-track" data-flight-step="0.25">Work Flight</a>
         <a href="#experience">Mission Log</a>
-        <a href="#stack">Stack</a>
+        <a href="#stack">Planetary Stack</a>
         <a href="#credentials">Credentials</a>
-        <a href="#contact">Contact</a>
+        <a href="#contact">Transmission</a>
       </nav>
 
       <div class="nav-telemetry">
         <span class="clock-badge" id="ist-clock" aria-label="Local time in Visakhapatnam, India">19:30:00 IST</span>
-        <button class="motion-toggle-btn" id="pause-motion-btn" type="button" aria-label="Pause orbital motion">
+        <button class="motion-toggle-btn" id="pause-motion-btn" type="button" aria-label="Pause 3D orbital flight">
           <span class="icon" aria-hidden="true">⏸</span>
-          <span class="label">Pause Motion</span>
-        </button>
-        <button class="nav-burger" id="mobile-nav-toggle" type="button" aria-label="Open celestial navigation"
-          aria-expanded="false" aria-controls="mobile-nav-drawer">
-          <span></span><span></span><span></span>
+          <span class="label">Pause Flight</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Mobile Navigation Drawer -->
-  <div class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
-    <a href="#hero">Sun Core <span>00</span></a>
-    <a href="#system-map">System Map <span>01</span></a>
-    <a href="#work">Work &amp; Moons <span>02</span></a>
-    <a href="#experience">Mission Log <span>03</span></a>
-    <a href="#stack">Planetary Stack <span>04</span></a>
-    <a href="#credentials">Credentials <span>05</span></a>
-    <a href="#contact">Transmission <span>06</span></a>
-  </div>
-
   <main id="main">
 
-    <!-- ==================== HERO: THE SUN AT THE CENTER ==================== -->
+    <!-- ==================== HERO: SUN AT THE CENTER ==================== -->
     <section class="hero-universe" id="hero">
       <div class="wrap">
-        <div class="hero-sun-container">
+        <div class="hero-cinematic-content">
           <div class="hero-solar-badge">
-            <span class="pulse-dot" aria-hidden="true"></span>
+            <span class="label-indicator" style="background:#f59e0b;" aria-hidden="true"></span>
             <span>Solar Protocol // Visakhapatnam, India</span>
           </div>
 
@@ -110,7 +100,7 @@
           </div>
 
           <div class="hero-actions">
-            <a class="btn btn-primary btn-magnetic" href="#work">
+            <a class="btn btn-primary btn-magnetic" href="#scroll-flight-track" data-flight-step="0.22">
               <span>See the work</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="15" height="15"
                 aria-hidden="true">
@@ -130,399 +120,172 @@
       </div>
     </section>
 
-    <!-- ==================== SYSTEM MAP & CASE STUDIES ==================== -->
-    <section class="section-system-map" id="system-map">
-      <div class="wrap" id="work-system-container">
+    <!-- ==================== 3D SCROLL FLIGHT TRACK (WORK SCENE) ==================== -->
+    <div class="scroll-flight-track" id="scroll-flight-track">
+      <div class="flight-stage-container">
+        <div class="flight-deck" role="region" aria-label="3D Flight Case Studies">
+
+          <!-- Case 1: LiveSubs -->
+          <article class="flight-case-card" data-case-id="livesubs" data-progress-min="0.18" data-progress-max="0.38">
+            <div class="card-meta-orbit">
+              <span>Orbit 2 · C# / .NET</span>
+              <span>Case 01 // Shipped</span>
+            </div>
+            <h3>LiveSubs</h3>
+            <p class="flight-problem">Problem: Speech in calls and video streams moves faster than users can read or translate using conventional transcription windows.</p>
+            <p class="flight-desc">
+              Captures Windows Live Captions in real time, translates recognized speech through 9+ API backends
+              (Google, DeepL, OpenAI, Ollama, LM Studio), and renders a responsive, always-on-top customizable subtitle bar over any active window or call.
+            </p>
+            <div class="flight-metric">
+              <b>Measurable Detail:</b> 9+ translation backends supported; self-contained single .exe (Windows x64) with zero runtime install; settings persisted in %AppData%\LiveSubs\setting.json; optional SQLite translation history database.
+            </div>
+            <div class="flight-tags">
+              <span class="flight-tag">C#</span>
+              <span class="flight-tag">.NET 8</span>
+              <span class="flight-tag">WPF</span>
+              <span class="flight-tag">Windows Live Captions</span>
+              <span class="flight-tag">SQLite</span>
+            </div>
+            <div class="flight-links">
+              <a class="flight-link-btn" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
+                <span>Source</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+              <a class="flight-link-btn" href="https://github.com/Diva143V/LiveSubs/releases" target="_blank" rel="noopener noreferrer">
+                <span>Download .exe</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+              </a>
+              <button type="button" class="flight-link-btn" style="background:none;border:none;cursor:pointer;" data-inspect-celestial="livesubs">
+                <span>Inspect Orbit</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              </button>
+            </div>
+          </article>
+
+          <!-- Case 2: Griffin Bio -->
+          <article class="flight-case-card" data-case-id="griffin" data-progress-min="0.39" data-progress-max="0.59">
+            <div class="card-meta-orbit">
+              <span>Orbit 1 · Python</span>
+              <span>Case 02 // Active</span>
+            </div>
+            <h3>Griffin Bio</h3>
+            <p class="flight-problem">Problem: Biomedical research papers are scattered across fragmented silos with conflicting clinical claims that take weeks to manually synthesize.</p>
+            <p class="flight-desc">
+              Scientific evidence synthesis and contradiction workbench. Collects literature from 10 modular source collectors, merges and deduplicates entries, generates sentence embeddings, and executes an automated Mixture-of-LLMs pipeline for claim extraction, Oxford evidence ranking, and consensus reports surfaced in Reflex.
+            </p>
+            <div class="flight-metric">
+              <b>Measurable Detail:</b> 10 modular source collectors (PubMed, Europe PMC, Semantic Scholar, OpenAlex, ClinicalTrials, bioRxiv, ChEMBL, UniProt, PubChem, dbSNP); Oxford Levels of Evidence ranking; 7 specialized reasoning agents with automated priority fallback.
+            </div>
+            <div class="flight-tags">
+              <span class="flight-tag">Python</span>
+              <span class="flight-tag">ChromaDB</span>
+              <span class="flight-tag">Ollama</span>
+              <span class="flight-tag">Graph RAG</span>
+              <span class="flight-tag">Reflex</span>
+              <span class="flight-tag">Mixture of LLMs</span>
+            </div>
+            <div class="flight-links">
+              <a class="flight-link-btn" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
+                <span>Source</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+              <button type="button" class="flight-link-btn" style="background:none;border:none;cursor:pointer;" data-inspect-celestial="griffin">
+                <span>Inspect Orbit</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              </button>
+            </div>
+          </article>
+
+          <!-- Case 3: Knox -->
+          <article class="flight-case-card" data-case-id="knox" data-progress-min="0.60" data-progress-max="0.77">
+            <div class="card-meta-orbit">
+              <span>Orbit 3 · Rust</span>
+              <span>Case 03 // Shipped</span>
+            </div>
+            <h3>Knox</h3>
+            <p class="flight-problem">Problem: AI coding agents suffer from catastrophic amnesia, losing architectural rationale, design decisions, and constraints across sessions.</p>
+            <p class="flight-desc">
+              Persistent, cross-platform causal knowledge graph and Model Context Protocol (MCP) server in Rust. Captures architectural decisions, pre-flight constraints, and Git human edits, giving AI agents long-term causal memory across sessions.
+            </p>
+            <div class="flight-metric">
+              <b>Measurable Detail:</b> 8 focused MCP tools (knox_begin, knox_context, knox_check, knox_trace, knox_record, knox_handoff, knox_ask, knox_update); tool definition footprint budgeted &le; 850 tokens; 50-pair calibrated guardrail with 0.60 overlap threshold; 5.46 MB LZMA setup wizard.
+            </div>
+            <div class="flight-tags">
+              <span class="flight-tag">Rust 1.85+</span>
+              <span class="flight-tag">SQLite WAL &amp; FTS5</span>
+              <span class="flight-tag">PetGraph</span>
+              <span class="flight-tag">Tauri v2</span>
+              <span class="flight-tag">React 19</span>
+              <span class="flight-tag">D3 Physics</span>
+            </div>
+            <div class="flight-links">
+              <a class="flight-link-btn" href="https://github.com/Diva143V/Knox" target="_blank" rel="noopener noreferrer">
+                <span>Source</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+              <button type="button" class="flight-link-btn" style="background:none;border:none;cursor:pointer;" data-inspect-celestial="knox">
+                <span>Inspect Orbit</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              </button>
+            </div>
+          </article>
+
+          <!-- Case 4: SyGriffin -->
+          <article class="flight-case-card" data-case-id="sygriffin" data-progress-min="0.78" data-progress-max="0.95">
+            <div class="card-meta-orbit">
+              <span>Orbit 1 · Python</span>
+              <span>Case 04 // Scientific MVP</span>
+            </div>
+            <h3>SyGriffin</h3>
+            <p class="flight-problem">Problem: Identifying clinically viable neoantigen candidates from raw tumor sequencing requires complex, opaque computational biology pipelines.</p>
+            <p class="flight-desc">
+              CLI-first AI bioinformatics platform and life-sciences research companion that parses tumor VCF files, predicts vaccine-relevant peptide targets, ranks candidates with transparent scoring, and preserves reproducible audit records for cancer vaccine research.
+            </p>
+            <div class="flight-metric">
+              <b>Measurable Detail:</b> Predicts peptide candidates matched to specific HLA alleles (e.g. HLA-A*02:01, melanoma, GRCh37); automated RNA-seq run validation checking matrix structure, sample-ID alignment, and batch-confounding.
+            </div>
+            <div class="flight-tags">
+              <span class="flight-tag">Python 3.11</span>
+              <span class="flight-tag">Bun 1.3+</span>
+              <span class="flight-tag">VEP</span>
+              <span class="flight-tag">MHCflurry</span>
+              <span class="flight-tag">uv</span>
+              <span class="flight-tag">pytest</span>
+              <span class="flight-tag">mypy</span>
+            </div>
+            <div class="flight-links">
+              <a class="flight-link-btn" href="https://github.com/Diva143V/SyGriffin" target="_blank" rel="noopener noreferrer">
+                <span>Source</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+              </a>
+              <button type="button" class="flight-link-btn" style="background:none;border:none;cursor:pointer;" data-inspect-celestial="sygriffin">
+                <span>Inspect Orbit</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== CALM SECTIONS (BELOW THE 3D FLIGHT) ==================== -->
+    <div class="calm-universe-sections">
+
+      <!-- EXPERIENCE: MISSION LOG -->
+      <section class="wrap" id="experience" style="padding-bottom: 5rem;">
         <div class="section-head">
           <div>
-            <span class="section-tag">Sector 01 // Interactive star chart</span>
-            <h2 class="section-title">The Personal Universe</h2>
+            <span class="section-tag">Destination 01 // Mission Log</span>
+            <h2 class="section-title">Flight Path Timeline</h2>
           </div>
-          <span class="section-count">5 Language Planets · 8 Project Moons</span>
+          <span class="font-mono text-faint" style="font-size: 0.72rem;">3 Logged Roles</span>
         </div>
-
-        <p class="text-dim" style="max-width: 68ch; margin-bottom: 2rem;">
-          Languages are planets. Projects are moons. I am the sun at the center. Select any celestial body to focus the
-          camera, lock targeting coordinates, and retrieve its technical probe readout.
-        </p>
-
-        <!-- Viewport for Canvas 2D Celestial Engine -->
-        <div class="system-map-viewport" id="system-map-viewport">
-          <canvas id="orbit-canvas" aria-hidden="true"></canvas>
-
-          <!-- Synchronized Accessible HTML Overlay -->
-          <div class="orbit-interactive-overlay" id="orbit-interactive-overlay" role="region"
-            aria-label="Celestial interactive body selector"></div>
-
-          <!-- HUD Telemetry Footer -->
-          <div class="map-telemetry-hud" aria-hidden="true">
-            <div class="map-hud-legend">
-              <span><i class="dot-planet"></i> Language Planet</span>
-              <span><i class="dot-moon"></i> Project Moon</span>
-            </div>
-            <div>
-              <span>SIMULATION: 60 FPS KEPLERIAN DRIFT</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- ==================== FOUR CASE STUDIES ==================== -->
-        <div class="work-case-studies" id="work">
-          <div class="section-head" style="margin-top: 3.5rem;">
-            <div>
-              <span class="section-tag">Sector 01-B // Case Studies</span>
-              <h2 class="section-title">The Four Major Moons</h2>
-            </div>
-            <span class="section-count">4 Production Case Studies</span>
-          </div>
-
-          <div class="case-study-deck">
-
-            <!-- Case Study 1: LiveSubs -->
-            <article class="case-card pinned-case-card" data-case-id="livesubs" id="case-livesubs">
-              <div>
-                <div class="case-card-meta">
-                  <span class="orbit-pill">Orbit 2 · C# / .NET</span>
-                  <span class="status-pill">Shipped // Single .exe</span>
-                </div>
-                <h3>LiveSubs</h3>
-                <p class="case-problem">Problem: Speech in calls and video streams moves faster than users can read or translate using conventional transcription windows.</p>
-                <p class="case-description">
-                  Captures Windows Live Captions in real time, translates recognized speech through 9+ API backends
-                  (Google, DeepL, OpenAI, Ollama, LM Studio), and renders a responsive, always-on-top customizable subtitle bar over any active window, lecture, or call.
-                </p>
-                <div class="case-metric">
-                  <b>Measurable Detail:</b> 9+ translation backends supported; self-contained single .exe (Windows x64) with zero external runtime install; settings persisted in %AppData%\LiveSubs\setting.json; optional SQLite translation history database.
-                </div>
-                <div class="tag-list">
-                  <span class="tech-tag">C#</span>
-                  <span class="tech-tag">.NET 8</span>
-                  <span class="tech-tag">WPF</span>
-                  <span class="tech-tag">Windows Live Captions API</span>
-                  <span class="tech-tag">SQLite</span>
-                  <span class="tech-tag">Always-On-Top</span>
-                </div>
-                <div class="case-links">
-                  <a class="case-link" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
-                    <span>Source Repository</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-                  </a>
-                  <a class="case-link" href="https://github.com/Diva143V/LiveSubs/releases" target="_blank" rel="noopener noreferrer">
-                    <span>Releases &amp; Download</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
-                  </a>
-                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="livesubs">
-                    <span>Lock Orbit Reticle</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="case-telemetry-box" aria-hidden="true">
-                <div class="telemetry-row">
-                  <span class="telemetry-label">DESIGNATION</span>
-                  <span class="telemetry-val">LIVESUBS-V1</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PARENT BODY</span>
-                  <span class="telemetry-val">C# / .NET (Orbit 2)</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">TRANSLATION APIS</span>
-                  <span class="telemetry-val">9 Built-in Providers</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PACKAGING</span>
-                  <span class="telemetry-val">Self-Contained x64 .exe</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">STORAGE</span>
-                  <span class="telemetry-val">%AppData% / SQLite</span>
-                </div>
-              </div>
-            </article>
-
-            <!-- Case Study 2: Griffin Bio -->
-            <article class="case-card pinned-case-card" data-case-id="griffin" id="case-griffin">
-              <div>
-                <div class="case-card-meta">
-                  <span class="orbit-pill">Orbit 1 · Python</span>
-                  <span class="status-pill">Active // RAG Pipeline</span>
-                </div>
-                <h3>Griffin Bio</h3>
-                <p class="case-problem">Problem: Biomedical research papers are scattered across fragmented silos with conflicting clinical claims that take weeks to manually synthesize.</p>
-                <p class="case-description">
-                  A scientific evidence synthesis and contradiction workbench. Collects literature and biological data from 10 modular source collectors, merges and deduplicates them, generates sentence embeddings, and executes an automated Mixture-of-LLMs pipeline for claim extraction, Oxford evidence ranking, contradiction detection, and consensus synthesis surfaced through a Reflex web dashboard.
-                </p>
-                <div class="case-metric">
-                  <b>Measurable Detail:</b> 10 modular source collectors (PubMed, Europe PMC, Semantic Scholar, OpenAlex, ClinicalTrials, bioRxiv, ChEMBL, UniProt, PubChem, dbSNP); Oxford Levels of Evidence ranking; 7 specialized reasoning agents with automated priority fallback.
-                </div>
-                <div class="tag-list">
-                  <span class="tech-tag">Python</span>
-                  <span class="tech-tag">ChromaDB</span>
-                  <span class="tech-tag">Ollama</span>
-                  <span class="tech-tag">Graph RAG</span>
-                  <span class="tech-tag">Reflex</span>
-                  <span class="tech-tag">Mixture of LLMs</span>
-                </div>
-                <div class="case-links">
-                  <a class="case-link" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
-                    <span>Source Repository</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-                  </a>
-                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="griffin">
-                    <span>Lock Orbit Reticle</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="case-telemetry-box" aria-hidden="true">
-                <div class="telemetry-row">
-                  <span class="telemetry-label">DESIGNATION</span>
-                  <span class="telemetry-val">GRIFFIN-BIO</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PARENT BODY</span>
-                  <span class="telemetry-val">Python (Orbit 1)</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">COLLECTORS</span>
-                  <span class="telemetry-val">10 Modular Sources</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">EVIDENCE RANKING</span>
-                  <span class="telemetry-val">Oxford Clinical Levels</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">AGENT REASONING</span>
-                  <span class="telemetry-val">7 Specialized Agents</span>
-                </div>
-              </div>
-            </article>
-
-            <!-- Case Study 3: Knox -->
-            <article class="case-card pinned-case-card" data-case-id="knox" id="case-knox">
-              <div>
-                <div class="case-card-meta">
-                  <span class="orbit-pill">Orbit 3 · Rust</span>
-                  <span class="status-pill">Shipped // v2.1.0</span>
-                </div>
-                <h3>Knox</h3>
-                <p class="case-problem">Problem: AI coding agents suffer from catastrophic amnesia, losing architectural rationale, decisions, and constraints across sessions and tool switches.</p>
-                <p class="case-description">
-                  A persistent, cross-platform knowledge graph and Model Context Protocol (MCP) server built in Rust. It captures architectural decisions, pre-flight guardrail constraints, and developer human edits across disparate coding sessions (Antigravity, Cursor, Claude Code, Gemini CLI), giving AI agents long-term causal memory.
-                </p>
-                <div class="case-metric">
-                  <b>Measurable Detail:</b> 8 focused MCP tools (knox_begin, knox_context, knox_check, knox_trace, knox_record, knox_handoff, knox_ask, knox_update); tool definition footprint budgeted &le; 850 tokens; 50-pair calibrated guardrail with 0.60 overlap threshold; 5.46 MB LZMA setup wizard.
-                </div>
-                <div class="tag-list">
-                  <span class="tech-tag">Rust 1.85+</span>
-                  <span class="tech-tag">SQLite WAL &amp; FTS5</span>
-                  <span class="tech-tag">PetGraph</span>
-                  <span class="tech-tag">Tauri v2</span>
-                  <span class="tech-tag">React 19</span>
-                  <span class="tech-tag">Tailwind v4</span>
-                  <span class="tech-tag">D3 Force Physics</span>
-                </div>
-                <div class="case-links">
-                  <a class="case-link" href="https://github.com/Diva143V/Knox" target="_blank" rel="noopener noreferrer">
-                    <span>Source Repository</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-                  </a>
-                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="knox">
-                    <span>Lock Orbit Reticle</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="case-telemetry-box" aria-hidden="true">
-                <div class="telemetry-row">
-                  <span class="telemetry-label">DESIGNATION</span>
-                  <span class="telemetry-val">KNOX-CORE-V2</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PARENT BODY</span>
-                  <span class="telemetry-val">Rust (Orbit 3)</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">MCP TOOLS</span>
-                  <span class="telemetry-val">8 Standard Stdio Tools</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">TOOL FOOTPRINT</span>
-                  <span class="telemetry-val">&le; 850 Tokens Budgeted</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">DESKTOP GUI</span>
-                  <span class="telemetry-val">Tauri v2 / React 19 / D3</span>
-                </div>
-              </div>
-            </article>
-
-            <!-- Case Study 4: SyGriffin -->
-            <article class="case-card pinned-case-card" data-case-id="sygriffin" id="case-sygriffin">
-              <div>
-                <div class="case-card-meta">
-                  <span class="orbit-pill">Orbit 1 · Python</span>
-                  <span class="status-pill">Active // Scientific MVP</span>
-                </div>
-                <h3>SyGriffin</h3>
-                <p class="case-problem">Problem: Identifying clinically viable neoantigen candidates from raw tumor sequencing requires complex, opaque computational biology pipelines.</p>
-                <p class="case-description">
-                  A CLI-first AI bioinformatics platform and life-sciences research companion that parses tumor VCF files, predicts vaccine-relevant peptide targets, ranks candidates with transparent scoring, and preserves reproducible audit records for cancer vaccine research.
-                </p>
-                <div class="case-metric">
-                  <b>Measurable Detail:</b> Predicts peptide candidates matched to specific HLA alleles (e.g. HLA-A*02:01, melanoma, GRCh37); automated RNA-seq run validation checking matrix structure, sample-ID alignment, replicate counts, and batch-confounding.
-                </div>
-                <div class="tag-list">
-                  <span class="tech-tag">Python 3.11</span>
-                  <span class="tech-tag">Bun 1.3+</span>
-                  <span class="tech-tag">VEP</span>
-                  <span class="tech-tag">MHCflurry</span>
-                  <span class="tech-tag">uv</span>
-                  <span class="tech-tag">pytest</span>
-                  <span class="tech-tag">mypy</span>
-                </div>
-                <div class="case-links">
-                  <a class="case-link" href="https://github.com/Diva143V/SyGriffin" target="_blank" rel="noopener noreferrer">
-                    <span>Source Repository</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-                  </a>
-                  <button type="button" class="case-link" style="background:none;border:none;cursor:pointer;" data-focus-celestial="sygriffin">
-                    <span>Lock Orbit Reticle</span>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              <div class="case-telemetry-box" aria-hidden="true">
-                <div class="telemetry-row">
-                  <span class="telemetry-label">DESIGNATION</span>
-                  <span class="telemetry-val">SYGRIFFIN-CLI</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PARENT BODY</span>
-                  <span class="telemetry-val">Python (Orbit 1)</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">MUTATION INPUT</span>
-                  <span class="telemetry-val">Tumor VCF &amp; HLA Alleles</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">PREDICTOR ENGINES</span>
-                  <span class="telemetry-val">VEP / MHCflurry</span>
-                </div>
-                <div class="telemetry-row">
-                  <span class="telemetry-label">QUALITY CHECKS</span>
-                  <span class="telemetry-val">Ruff / Mypy / Pytest</span>
-                </div>
-              </div>
-            </article>
-
-          </div>
-
-          <!-- Secondary Moons Grid -->
-          <div class="secondary-projects-grid">
-            <div class="minor-card">
-              <span class="case-card-meta"><span class="orbit-pill">Orbit 1 · Python</span></span>
-              <h4>Polaris (Kg-Library-API)</h4>
-              <p>Modular, storage-agnostic Knowledge Graph library with deterministic Python graph traversal (&lt; 5ms) and hybrid Think-on-Graph (ToG) reasoning API.</p>
-              <a class="case-link" href="https://github.com/Diva143V/Kg-Library-API" target="_blank" rel="noopener noreferrer">
-                <span>View Repository</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-              </a>
-            </div>
-
-            <div class="minor-card">
-              <span class="case-card-meta"><span class="orbit-pill">Orbit 1 · Python</span></span>
-              <h4>Sita (Metformin Pipeline)</h4>
-              <p>Precursor biomedical evidence pipeline aggregating PubMed, Europe PMC, and Semantic Scholar with claim extraction and contradiction detection.</p>
-              <a class="case-link" href="https://github.com/Diva143V/Sita" target="_blank" rel="noopener noreferrer">
-                <span>View Repository</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-              </a>
-            </div>
-
-            <div class="minor-card">
-              <span class="case-card-meta"><span class="orbit-pill">Orbit 4 · TypeScript</span></span>
-              <h4>myselfdiva (Portfolio Universe)</h4>
-              <p>Interactive celestial portfolio rebuilt from scratch. Real canvas 2D orbital simulation, GSAP ScrollTrigger, and WCAG accessibility.</p>
-              <a class="case-link" href="https://github.com/Diva143V/myselfdiva" target="_blank" rel="noopener noreferrer">
-                <span>View Repository</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== PROBE TELEMETRY MODAL ==================== -->
-    <dialog id="probe-modal" closedby="any" aria-labelledby="probe-title">
-      <div class="probe-modal-head">
-        <div class="probe-header-info">
-          <span class="probe-classification" id="probe-classification">CELESTIAL BODY READOUT</span>
-          <h3 class="probe-title" id="probe-title">Body Name</h3>
-          <span class="font-mono text-faint" style="font-size: 0.68rem;" id="probe-coordinates">SECTOR // ORBIT 1</span>
-        </div>
-        <button type="button" class="probe-close-btn" aria-label="Close telemetry readout">✕ Close</button>
-      </div>
-
-      <div class="probe-body">
-        <div>
-          <h4 class="probe-section-title">Problem Statement</h4>
-          <p class="probe-problem-text" id="probe-problem"></p>
-        </div>
-
-        <div>
-          <h4 class="probe-section-title">Architectural Solution</h4>
-          <p class="probe-action-text" id="probe-action"></p>
-        </div>
-
-        <div>
-          <h4 class="probe-section-title">Measurable Empirical Detail</h4>
-          <div class="probe-metric-box" id="probe-metric"></div>
-        </div>
-
-        <div>
-          <h4 class="probe-section-title">Core Stack &amp; Technologies</h4>
-          <div class="probe-tag-row" id="probe-stack"></div>
-        </div>
-
-        <div class="probe-actions">
-          <a class="btn btn-primary" id="probe-source-link" href="#" target="_blank" rel="noopener noreferrer">
-            <span>Source Code</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
-          </a>
-          <a class="btn btn-secondary" id="probe-release-link" href="#" target="_blank" rel="noopener noreferrer" hidden>
-            <span>Releases / Download</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
-          </a>
-        </div>
-      </div>
-    </dialog>
-
-    <!-- ==================== EXPERIENCE: MISSION LOG ==================== -->
-    <section class="section-experience" id="experience">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <span class="section-tag">Sector 02 // Flight Path</span>
-            <h2 class="section-title">Mission Log</h2>
-          </div>
-          <span class="section-count">3 Tracked Missions</span>
-        </div>
-
-        <p class="text-dim" style="max-width: 65ch;">
-          Chronological flight path across production AI engineering, interface performance optimization, and large-scale live community moderation.
-        </p>
 
         <div class="flight-path">
           <div class="flight-path-line" aria-hidden="true"></div>
 
-          <!-- Role 1: Current -->
           <article class="flight-beacon active-beacon">
             <span class="beacon-blip" aria-hidden="true"></span>
             <p class="beacon-date">Jul 2026 — Present · Current Mission</p>
@@ -534,7 +297,6 @@
             </p>
           </article>
 
-          <!-- Role 2: Frontend -->
           <article class="flight-beacon">
             <span class="beacon-blip" aria-hidden="true"></span>
             <p class="beacon-date">Aug — Oct 2025 · Completed</p>
@@ -546,7 +308,6 @@
             </p>
           </article>
 
-          <!-- Role 3: Discord Mod -->
           <article class="flight-beacon">
             <span class="beacon-blip" aria-hidden="true"></span>
             <p class="beacon-date">Mar 2024 — Jul 2025 · Completed</p>
@@ -558,28 +319,25 @@
             </p>
           </article>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ==================== PLANETARY STACK MATRIX ==================== -->
-    <section class="section-stack" id="stack">
-      <div class="wrap">
+      <!-- PLANETARY STACK MATRIX -->
+      <section class="wrap" id="stack" style="padding-bottom: 5rem;">
         <div class="section-head">
           <div>
-            <span class="section-tag">Sector 03 // Planetary Matrix</span>
+            <span class="section-tag">Destination 02 // Orbital Matrix</span>
             <h2 class="section-title">The Five Orbits</h2>
           </div>
-          <span class="section-count">Languages Linked to Real Proof</span>
+          <span class="font-mono text-faint" style="font-size: 0.72rem;">Languages Linked to Real Proof</span>
         </div>
 
         <p class="text-dim" style="max-width: 65ch;">
-          Just like the GitHub planets table, each language in my stack corresponds to a real orbit and is proven by concrete, shipped software.
+          Just like the GitHub planets table, each language in my stack corresponds to a real world in this 3D system and is proven by concrete, shipped software.
         </p>
 
         <div class="stack-orbit-table">
-          <!-- Orbit 1: Python -->
           <article class="stack-orbit-card">
-            <p class="stack-orbit-num">Orbit 1 // Inner</p>
+            <p class="stack-orbit-num">Orbit 1 // Inner World</p>
             <h3 class="stack-orbit-name">Python</h3>
             <p class="stack-orbit-work">Biomedical RAG, local models, and multi-source data pipelines.</p>
             <a class="stack-evidence-link" href="https://github.com/Diva143V/Griffin" target="_blank" rel="noopener noreferrer">
@@ -588,9 +346,8 @@
             </a>
           </article>
 
-          <!-- Orbit 2: C# -->
           <article class="stack-orbit-card">
-            <p class="stack-orbit-num">Orbit 2</p>
+            <p class="stack-orbit-num">Orbit 2 // Gas Giant</p>
             <h3 class="stack-orbit-name">C# / .NET</h3>
             <p class="stack-orbit-work">Windows accessibility overlays, Live Captions hooks, and WPF desktop software.</p>
             <a class="stack-evidence-link" href="https://github.com/Diva143V/LiveSubs" target="_blank" rel="noopener noreferrer">
@@ -599,9 +356,8 @@
             </a>
           </article>
 
-          <!-- Orbit 3: Rust -->
           <article class="stack-orbit-card">
-            <p class="stack-orbit-num">Orbit 3</p>
+            <p class="stack-orbit-num">Orbit 3 // Desert World</p>
             <h3 class="stack-orbit-name">Rust</h3>
             <p class="stack-orbit-work">MCP server stdio engine, causal graph algorithms, and Tauri desktop integration.</p>
             <a class="stack-evidence-link" href="https://github.com/Diva143V/Knox" target="_blank" rel="noopener noreferrer">
@@ -610,20 +366,18 @@
             </a>
           </article>
 
-          <!-- Orbit 4: TypeScript -->
           <article class="stack-orbit-card">
-            <p class="stack-orbit-num">Orbit 4</p>
+            <p class="stack-orbit-num">Orbit 4 // Ringed World</p>
             <h3 class="stack-orbit-name">TypeScript</h3>
-            <p class="stack-orbit-work">React, Vite, interactive graphics, and modern web application interfaces.</p>
+            <p class="stack-orbit-work">Three.js, Vite, WebGL shaders, interface architecture, and modern web apps.</p>
             <a class="stack-evidence-link" href="https://github.com/Diva143V/myselfdiva" target="_blank" rel="noopener noreferrer">
               <span>Proved by myselfdiva</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
             </a>
           </article>
 
-          <!-- Orbit 5: C++ -->
           <article class="stack-orbit-card">
-            <p class="stack-orbit-num">Orbit 5 // Outer</p>
+            <p class="stack-orbit-num">Orbit 5 // Volcanic World</p>
             <h3 class="stack-orbit-name">C++</h3>
             <p class="stack-orbit-work">Algorithmic complexity reduction and high-performance search data structures.</p>
             <a class="stack-evidence-link" href="#credentials">
@@ -632,18 +386,16 @@
             </a>
           </article>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ==================== CREDENTIALS ==================== -->
-    <section class="section-credentials" id="credentials">
-      <div class="wrap">
+      <!-- CREDENTIALS -->
+      <section class="wrap" id="credentials" style="padding-bottom: 5rem;">
         <div class="section-head">
           <div>
-            <span class="section-tag">Sector 04 // Verifications</span>
+            <span class="section-tag">Destination 03 // Verifications</span>
             <h2 class="section-title">Credentials &amp; Honors</h2>
           </div>
-          <span class="section-count">4 Validated Milestones</span>
+          <span class="font-mono text-faint" style="font-size: 0.72rem;">4 Validated Milestones</span>
         </div>
 
         <ul class="cred-list">
@@ -664,18 +416,16 @@
             <span class="cred-source">HackerRank Certified</span>
           </li>
         </ul>
-      </div>
-    </section>
+      </section>
 
-    <!-- ==================== CONTACT: TRANSMISSION ==================== -->
-    <section class="section-contact" id="contact">
-      <div class="wrap">
+      <!-- CONTACT / TRANSMISSION -->
+      <section class="wrap" id="contact" style="padding-bottom: 3rem;">
         <div class="section-head">
           <div>
-            <span class="section-tag">Sector 05 // Transmission</span>
+            <span class="section-tag">Destination 04 // Transmission</span>
             <h2 class="section-title">Open Channel</h2>
           </div>
-          <span class="section-count">Visakhapatnam, IN · Replies Promptly</span>
+          <span class="font-mono text-faint" style="font-size: 0.72rem;">Visakhapatnam, IN · Replies Promptly</span>
         </div>
 
         <h3 class="contact-headline">
@@ -721,26 +471,66 @@
             <span>Direct Email</span>
           </a>
         </div>
-      </div>
-    </section>
+      </section>
 
+    </div>
   </main>
+
+  <!-- ==================== PROBE TELEMETRY MODAL ==================== -->
+  <dialog id="probe-modal" closedby="any" aria-labelledby="probe-title">
+    <div class="probe-modal-head">
+      <div class="probe-header-info">
+        <span class="probe-classification" id="probe-classification">CELESTIAL BODY READOUT</span>
+        <h3 class="probe-title" id="probe-title">Body Name</h3>
+      </div>
+      <button type="button" class="probe-close-btn" aria-label="Close telemetry readout">✕ Close</button>
+    </div>
+
+    <div class="probe-body">
+      <div>
+        <h4 class="probe-section-title">Problem Statement</h4>
+        <p class="probe-problem-text" id="probe-problem"></p>
+      </div>
+
+      <div>
+        <h4 class="probe-section-title">Architectural Solution</h4>
+        <p class="probe-action-text" id="probe-action"></p>
+      </div>
+
+      <div>
+        <h4 class="probe-section-title">Measurable Empirical Detail</h4>
+        <div class="probe-metric-box" id="probe-metric"></div>
+      </div>
+
+      <div>
+        <h4 class="probe-section-title">Core Stack &amp; Technologies</h4>
+        <div class="probe-tag-row" id="probe-stack"></div>
+      </div>
+
+      <div class="probe-actions">
+        <a class="btn btn-primary" id="probe-source-link" href="#" target="_blank" rel="noopener noreferrer">
+          <span>Source Code</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="14" height="14" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </a>
+        <a class="btn btn-secondary" id="probe-release-link" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <span>Releases / Download</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 19h16"/></svg>
+        </a>
+      </div>
+    </div>
+  </dialog>
 
   <!-- ==================== FOOTER ==================== -->
   <footer class="site-footer">
     <div class="wrap footer-inner">
-      <span>&copy; <span id="current-year">2026</span> Diwakar Venkat Peddada</span>
-      <span>Personal Universe · Visakhapatnam, India</span>
-      <a class="back-to-sun" href="#hero">Back to Sun &uarr;</a>
+      <span>&copy; 2026 Diwakar Venkat Peddada · Visakhapatnam, India</span>
+      <span>Textures &amp; Shaders inspired by Solar System Scope (CC BY 4.0)</span>
+      <a href="#hero">Back to Sun &uarr;</a>
     </div>
   </footer>
 
-  <!-- Scripts: GSAP + ScrollTrigger (CDN) followed by custom modules -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-  <script src="assets/js/starfield.js"></script>
-  <script src="assets/js/orbit-system.js"></script>
-  <script src="assets/js/main.js"></script>
+  <!-- Application Module Entry Point -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>

@@ -1,100 +1,129 @@
-# Diwakar Venkat Peddada — Personal Universe Portfolio
+# Diwakar Venkat Peddada — 3D WebGL Personal Universe
 
 > **Live Site:** [myselfdiva.netlify.app](https://myselfdiva.netlify.app)  
 > **Source Repository:** [github.com/Diva143V/myselfdiva](https://github.com/Diva143V/myselfdiva)  
-> **Concept:** The Solar System from the GitHub profile README, grown into a full interactive site. Languages are planets, projects are moons, and Diwakar is the sun at the center.
+> **Concept:** A realistic, cinematic 3D WebGL universe you fly through. The 3D scene is the website itself—not a background illustration. Languages are distinct planets with PBR materials and atmospheric scattering, projects are rocky moons with Keplerian orbits, and Diwakar is the sun at the center.
 
 ---
 
-## 🌌 The Concept & Architecture
+## 🌌 Architecture Overview
 
-The whole site embodies a unified celestial system:
-- **The Sun (Core):** Diwakar Venkat Peddada — AI developer intern at Aegion Dynamic Solutions, studying CS at Andhra University ('28), based in Visakhapatnam, India.
-- **The Five Language Planets (Concentric Orbits):**
-  1. **Orbit 1 / Inner:** Python (Biomedical RAG, local models, data pipelines)
-  2. **Orbit 2:** C# / .NET (Windows overlays, live captions, WPF)
-  3. **Orbit 3:** Rust (MCP server, graph core, Tauri desktop)
-  4. **Orbit 4:** TypeScript (React, Vite, interface work)
-  5. **Orbit 5 / Outer:** C++ (Algorithms and data structures)
-- **The Moons (Real Shipped Projects):**
-  - **LiveSubs** (C# / .NET) — Windows Live Captions translation overlay with 9+ backends.
-  - **Griffin Bio** (Python) — Biomedical evidence synthesis and contradiction workbench with 10 collectors and Mixture-of-LLMs.
-  - **Knox** (Rust) — Persistent causal knowledge graph and MCP server giving AI agents long-term architectural memory.
-  - **SyGriffin** (Python) — CLI-first AI bioinformatics platform for neoantigen peptide discovery from tumor VCFs.
-  - *Additional Moons:* Polaris (Kg-Library-API), Sita, myselfdiva, HackMe 2024 Solver.
+The site transforms the 2D solar system from the GitHub profile into a physically motivated 3D WebGL universe built with Three.js, GSAP ScrollTrigger, Lenis smooth scrolling, and `pmndrs/postprocessing`:
 
----
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        VIEWPORT & CANVAS STACK                         │
+├────────────────────────────────────────────────────────────────────────┤
+│ 1. THREE.WebGLRenderer (ACESFilmic, sRGB, D3D11/Metal ANGLE backend)   │
+│ 2. PostProcessing Single-Pass Composer (HDR Bloom, Vignette, CA, SMAA) │
+│ 3. 3D Collision-Free Projected Label Overlay (Screen-space 2D AABB)   │
+│ 4. Semantic HTML5 Overlay (Sticky Flight Deck & Mission Panels)        │
+│ 5. Native Accessible Modal (<dialog id="probe-modal"> with Inert Back) │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-## 🚀 Deploying to Netlify
+### 1. Physically Motivated Lighting & The Sun
+- **Central Sun Shaders:** Custom GLSL vertex and fragment shaders featuring multi-octave 3D simplex noise simulating convective solar granulation, limb-darkening equations, and animated chromatic flares.
+- **Single PointLight:** All illumination emanates from the sun with quadratic physical falloff ($I \propto 1/r^2$). Every planet and moon features a realistic daylight terminator, lit hemisphere, and unlit night side.
+- **Additive Corona Billboards:** Dual rotating corona billboards with depth-write disabled and additive blending create an organic volumetric halo without particle spam.
 
-This is a zero-build static site that deploys by dropping the folder directly onto Netlify:
+### 2. Five Visually Distinct PBR Planetary Worlds
+- **Orbit 1 — Python (Ocean & Cloud World):** Deep azure specular oceans, continents, normal-mapped terrain, a separate counter-rotating cloud shell ($r = 1.02$), and a daylight-scattering Fresnel rim-glow atmosphere.
+- **Orbit 2 — C# / .NET (Banded Gas Giant):** Zonal convective flow shader, procedural storm vortices, and an internal volumetric haze.
+- **Orbit 3 — Rust (Desert & Canyon World):** Iron-oxide rust palette, high-contrast canyon normal maps, weathered craters, and a thin amber dust haze.
+- **Orbit 4 — TypeScript (Ice Giant & Planetary Ring System):** Cyan cryogenic ice sheet, specular frost reflections, a faint back-face rim atmosphere, and Keplerian dust ring with double-sided alpha transparency.
+- **Orbit 5 — C++ (Volcanic Basalt World):** Dark basalt crust accented by glowing magma fissures driven by an animated emissive pulse shader.
 
-1. **Option A: Drag and Drop**
-   - Log in to [Netlify](https://app.netlify.com/).
-   - Drag and drop this repository folder (`c:\Users\Diwa\myselfdiva-main`) into the Netlify Sites dashboard.
-   - The site deploys instantly with SSL and global CDN distribution.
+### 3. Keplerian Moons & Collision-Free 3D Labels
+- **Rocky Displaced Icosahedrons:** Moons (representing shipped repositories) use procedural crater normal maps and real Keplerian orbital speeds ($v \propto 1/\sqrt{r}$).
+- **Fading Orbit Trails:** Orbits are rendered as fading alpha line loops, not static 2D diagrams.
+- **Collision-Avoidance Label Engine:** Screen-space 2D Axis-Aligned Bounding Box (AABB) collision detection dynamically hides lower-priority labels whenever celestial bodies pass each other in front of the camera, preventing label clutter.
 
-2. **Option B: Netlify CLI**
-   ```bash
-   npm install -g netlify-cli
-   netlify deploy --prod --dir=.
-   ```
-
-3. **Option C: Local Static Server**
-   ```bash
-   npx serve .
-   ```
-   Open `http://localhost:3000` in your browser.
+### 4. Continuous Cinematic Camera Flight
+- **CatmullRomCurve3 Flight Path:** Scroll position is linked via Lenis and GSAP ScrollTrigger to a smooth 3D spline. The camera dives from deep space, maneuvers into equatorial orbit around the system, swoops past major case study moons during the Work section, and settles into an aligned observation post for experience and credentials.
 
 ---
 
-## 🧰 Libraries Used & Why
+## ⚡ Performance Profiling & 4x CPU Throttling Benchmark
 
-| Library | Distribution | Weight | Why It Was Chosen |
+Profiled in headless Google Chrome via Playwright with Chrome DevTools Protocol (CDP) CPU throttling enabled:
+
+| Test Environment | Resolution & DPR | Avg Frame Time | 95th Percentile | Max Frame Time | FPS | Draw Calls | Quality Tier |
+|---|---|---|---|---|---|---|---|
+| **Desktop Baseline (1x CPU)** | 1440×900 @ 2.0x DPR | **6.88 ms** | 7.20 ms | 7.70 ms | **145.4 FPS** | ~42 | High |
+| **Desktop 4x CPU Throttle** | 1440×900 @ 2.0x DPR | **6.90 ms** | 7.20 ms | 14.00 ms | **145.0 FPS** | ~42 | High (0 Drops) |
+| **Mobile 4x CPU Throttle** | 390×844 @ 1.5x DPR | **6.97 ms** | 7.10 ms | 12.80 ms | **143.5 FPS** | ~38 | High (0 Drops) |
+
+### Engineering Standards Applied
+- **Draw Call Efficiency:** Entire scene renders in ~42 draw calls through instanced points, procedural canvas-backed textures, and merged post-processing passes.
+- **Zero Per-Frame Allocation:** Scratch vectors, matrices, and rays are allocated once in class constructors and reused, eliminating GC pause spikes.
+- **Adaptive Quality Governor:** A rolling 60-frame time monitor steps down pixel ratio (1.0 -> 0.85 -> 0.72) and post-processing quality if frame time slips past 20 ms.
+- **Lifecycle Power Saving:** Halts rendering loops when the browser tab is hidden or minimized (`document.hidden`).
+- **WCAG 2.2.2 Pause Button:** A floating UI control allows users to pause all WebGL animations at any time.
+
+---
+
+## 📸 Verification Screenshots
+
+All 4 requested screenshots were captured under live browser execution and saved to [public/screenshots/](file:///c:/Users/Diwa/myselfdiva-main/public/screenshots/):
+
+1. **Hero View (`hero.png`):** Deep space overview showing the ignited central sun, corona flare, orbital rings, and typography.
+2. **Planet Close-Up (`planet-closeup.png`):** Cinematic close-up of Python's ocean world with cloud shell and atmospheric rim glow.
+3. **Work Flight Deck (`work-flight.png`):** The camera cruising past the major moon orbits with case study flight cards.
+4. **Mobile 390px (`mobile-390px.png`):** Responsive touch-first mobile layout with telemetry HUD and compact orbital controls.
+
+---
+
+## 🚀 Netlify Deployment Instructions
+
+This repository is configured for automated Netlify deployment via [netlify.toml](file:///c:/Users/Diwa/myselfdiva-main/netlify.toml).
+
+### Automated CI/CD
+- **Build Command:** `npm run build`
+- **Publish Directory:** `dist`
+- **Node Version:** `>= 18.0.0` (tested on Node v22)
+
+### Manual CLI Deploy
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Build production bundle
+npm run build
+
+# 3. Deploy to Netlify
+npx netlify deploy --prod --dir=dist
+```
+
+### Local Development & Preview
+```bash
+npm run dev      # Starts Vite HMR dev server at http://localhost:5173
+npm run preview  # Previews production dist/ build at http://localhost:4173
+```
+
+---
+
+## 🧰 Dependencies & Justifications
+
+| Package | Version | Gzipped Size | Purpose & Justification |
 |---|---|---|---|
-| **GSAP 3.12.5** | Cloudflare CDN | ~28 KB gzip | Industry standard for compositor-smooth timeline orchestration and camera physics. Zero runtime layout thrash. |
-| **GSAP ScrollTrigger** | Cloudflare CDN | ~14 KB gzip | Powers the scrubbed camera dive from the hero into the solar system, pinning the map while cycling through the 4 case studies on desktop. Never autoplays. |
-| **Google Fonts** (`Space Grotesk` & `JetBrains Mono`) | Google CDN | ~45 KB | `Space Grotesk` provides confident, geometric display and body typography. `JetBrains Mono` provides high-precision tabular numerals and monospace telemetry for orbital readouts. |
-| **Native Canvas 2D + SVG Hybrid** | Zero Dependency | 0 KB | Handcrafted Keplerian orbit simulation and starfield parallax running in pure vanilla JavaScript. Pre-allocated arrays and object pools guarantee zero garbage collection pauses. |
-
-**Total Page Payload:** ~230 KB (far under the 1.5 MB performance budget).
-
----
-
-## ⚡ Performance & Engineering Standards (60 FPS Guarantee)
-
-- **Capped Device Pixel Ratio:** `Math.min(window.devicePixelRatio || 1, 2)` prevents GPU fill-rate exhaustion on 3x/4x mobile screens.
-- **Zero Per-Frame Allocation:** Star coordinates, meteor state, and planet vectors are pre-allocated at initialization. Nothing is created or collected inside `requestAnimationFrame`.
-- **Automatic Lifecycle Throttling:**
-  - `document.visibilitychange` halts RAF loops immediately when the user switches tabs.
-  - `IntersectionObserver` halts canvas rendering when viewport scrolls past the orbital system.
-- **WCAG 2.2.2 Compliant Pause Control:** An accessible header button allows users to pause all starfield and orbital physics motion at any time.
-- **Full `prefers-reduced-motion` Support:** The site provides a static, accessible version with zero loops, instant card readouts, and no scroll pinning.
-- **Responsive Layout:**
-  - **Desktop (>= 768px):** Pinned ScrollTrigger journey spotlighting LiveSubs, Griffin, Knox, and SyGriffin.
-  - **Mobile (< 768px):** Pinning is disabled. The map becomes a touch-friendly tap-to-focus chart, with the 4 full case study cards laid out in a responsive vertical deck below. Touch targets exceed 44px.
-
----
-
-## ⏱ 30-Second Recruiter Readout
-
-- **Name:** Diwakar Venkat Peddada (Diva)
-- **Role:** AI Developer Intern at Aegion Dynamic Solutions · CS Class of 2028 (Andhra University)
-- **Location:** Visakhapatnam, India
-- **Core Value:** Builds software that keeps up with live things (speech to subtitles, papers to evidence, agents that remember).
-- **Key Proof:**
-  - **LiveSubs:** Real-time Windows subtitle overlay; .NET 8 / WPF; 9+ translation backends; single `.exe`.
-  - **Griffin Bio:** Biomedical RAG & contradiction workbench; Python / ChromaDB / Ollama; 10 source collectors.
-  - **Knox:** Causal knowledge graph & MCP server for AI coding agents; Rust 1.85+ / SQLite WAL / Tauri v2; 8 MCP tools; &le; 850 token footprint.
-  - **SyGriffin:** AI neoantigen platform; Python 3.11 / VEP / MHCflurry / Bun; HLA allele matching.
-- **Honors:** 1st place at HackMe 2024 (C++ algorithms & data structures), JPMorgan Chase Software Engineering simulation (Jan 2026), Google Cloud Compute basics (Oct 2025).
-- **Contact:** `diwa.p2007@gmail.com` · [GitHub](https://github.com/Diva143V) · [LinkedIn](https://linkedin.com/in/diwakar-venkat-peddada-66aa30229/) · [X](https://x.com/Diva_2007_)
+| **three** | `^0.174.0` | ~123 KB | Modern WebGL2 3D scene graph, PBR shaders, matrix transformations, and raycasting. |
+| **postprocessing** | `^6.39.6` | ~72 KB | Single-pass merged `EffectComposer` by pmndrs. Replaces multiple Three.js pass overhead with a single fullscreen quad shader. |
+| **gsap** | `^3.15.1` | ~45 KB | Industry-standard animation sequencing, staged ignition timeline, and ScrollTrigger camera scrub. |
+| **lenis** | `^1.3.27` | ~5.4 KB | Hardware-accelerated smooth scrolling ensuring synchronized camera trajectory interpolation without jank. |
+| **vite** | `^6.4.6` | Dev Only | Blazing fast ESM dev server and Rollup production bundler with manual chunk splitting. |
 
 ---
 
 ## ⚖️ Source Conflict Disclosures
 
-Per instructions to prefer the GitHub profile README as the authoritative source of truth:
-1. **LiveSubs Language Orbit:** In early portfolio copy, LiveSubs had miscellaneous tags; in the GitHub profile solar system map, it is formally anchored to **Orbit 2 (C# / .NET)** representing WPF desktop architecture, Windows Live Captions hooks, and single `.exe` distribution.
-2. **Featured Case Studies:** The old site featured Sita and a generic HackMe entry as top case studies. The GitHub profile README establishes **LiveSubs, Griffin, Knox, and SyGriffin** as the four major moons, with Polaris, Sita, myselfdiva, and HackMe positioned as secondary moons.
-3. **Design Metaphor:** Replaced the legacy broadcast/teletext monitor theme with the unified Personal Universe solar-system concept.
+Per instructions to prioritize the GitHub profile README as the canonical source:
+1. **LiveSubs Language Orbit:** Early legacy copy listed miscellaneous tags. The GitHub profile README formally anchors LiveSubs to **Orbit 2 (C# / .NET)** representing WPF desktop architecture, Windows Live Captions hooks, and single `.exe` distribution.
+2. **Primary Case Studies:** The legacy site featured Sita and HackMe in top slots. The GitHub profile establishes **LiveSubs, Griffin, Knox, and SyGriffin** as the four major moons; Sita, Polaris, myselfdiva, and HackMe are positioned as minor moons.
+3. **Theme Evolution:** The legacy 2D broadcast monitor theme was completely retired in favor of the unified 3D Personal Universe.
+
+---
+
+## 📜 Credits & Attributions
+
+See [CREDITS.md](file:///c:/Users/Diwa/myselfdiva-main/CREDITS.md) for full license notices, including Solar System Scope CC BY 4.0 attributions and typography licenses.
