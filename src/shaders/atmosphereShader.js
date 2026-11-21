@@ -1,19 +1,22 @@
 /**
- * atmosphereShader.js — Atmospheric Rayleigh Scattering & Fresnel Rim-Glow
+ * atmosphereShader.js — Directional Rayleigh Scattering & Twilight Horizon Shader
  * 
  * Features:
- * - Back-face rendered shell with smooth Fresnel grazing falloff
+ * - Back-face rendered shell with smooth grazing horizon falloff
  * - Sunlight direction awareness: scattering is brightest on the day-limb
- * - Tinted per planetary world (azure for Python, golden for C#, iron for Rust, etc.)
+ * - Twilight color-shift: grazing terminator angles shift to warm amber/vermilion
  * - Additive blending for soft cosmic rim illumination against deep space
  */
 
+import * as THREE from 'three';
+
 export const AtmosphereShader = {
   uniforms: {
-    uColor: { value: [0.22, 0.74, 0.97] },       // Atmospheric tint vector
-    uSunPosition: { value: [0.0, 0.0, 0.0] },    // Center sun coordinates
-    uAtmospherePower: { value: 3.2 },            // Fresnel exponent
-    uAtmosphereIntensity: { value: 1.5 }         // Glow multiplier
+    uColor: { value: new THREE.Vector3(0.22, 0.74, 0.97) },
+    uTwilightColor: { value: new THREE.Vector3(0.98, 0.45, 0.12) },
+    uSunPosition: { value: new THREE.Vector3(0, 0, 0) },
+    uAtmospherePower: { value: 3.5 },
+    uAtmosphereIntensity: { value: 1.6 }
   },
 
   vertexShader: /* glsl */ `
@@ -35,6 +38,7 @@ export const AtmosphereShader = {
 
   fragmentShader: /* glsl */ `
     uniform vec3 uColor;
+    uniform vec3 uTwilightColor;
     uniform vec3 uSunPosition;
     uniform float uAtmospherePower;
     uniform float uAtmosphereIntensity;
@@ -55,13 +59,16 @@ export const AtmosphereShader = {
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
       
       // Rayleigh day/night limb modulation: atmosphere glows on the sun-facing limb
-      float dayFactor = max(dot(normal, lightDir) * 0.5 + 0.5, 0.0);
-      dayFactor = pow(dayFactor, 1.2);
+      float NdotL = dot(normal, lightDir);
+      float dayFactor = smoothstep(-0.2, 0.35, NdotL);
+      float twilightFactor = smoothstep(-0.25, 0.05, NdotL) * smoothstep(0.4, 0.0, NdotL);
 
-      float alpha = fresnel * (0.2 + 0.8 * dayFactor) * uAtmosphereIntensity;
+      // Alpha falls off on the night side so the atmosphere doesn't glow in dark shadow
+      float alpha = fresnel * (0.08 + 0.92 * dayFactor) * uAtmosphereIntensity;
       
-      // Tone up color on the day edge
-      vec3 finalColor = uColor * (0.8 + 0.4 * dayFactor);
+      // Shift towards twilight amber/vermilion at grazing terminator
+      vec3 finalColor = mix(uColor, uTwilightColor, twilightFactor * 0.75);
+      finalColor *= (0.8 + 0.5 * dayFactor);
 
       gl_FragColor = vec4(finalColor, clamp(alpha, 0.0, 1.0));
     }

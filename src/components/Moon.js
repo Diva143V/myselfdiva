@@ -1,45 +1,49 @@
 /**
- * Moon.js — Rocky Project Moons with Tidal Lock & Orbit Trails
+ * Moon.js — Chiseled Crystalline Asteroids with Glowing Core Beacons & Orbit Ribbons
  */
 
 import * as THREE from 'three';
-import { createMoonNormalMap } from '../procedural/moonTextures.js';
 
-// Shared shared crater normal map to prevent duplicate canvas allocations
-let sharedMoonNormalMap = null;
+// Stack color palette mapping for beacons
+const STACK_BEACON_COLORS = {
+  python: 0x00f0ff,     // Electric Cyan (Griffin, SyGriffin, Sita)
+  csharp: 0xf59e0b,     // Sun Amber (LiveSubs)
+  rust: 0xf97316,       // Scorched Orange (Knox)
+  typescript: 0x38bdf8, // Glacial Blue (myselfdiva)
+  cpp: 0xef4444         // Incandescent Vermilion (Polaris, HackMe)
+};
 
 export function createMoon(config, parentPlanet) {
-  if (!sharedMoonNormalMap) {
-    sharedMoonNormalMap = createMoonNormalMap(256);
-  }
-
   const group = new THREE.Group();
   group.name = 'Moon_' + config.id;
 
-  // 1. Rocky Displaced Icosahedron Geometry
   const radius = config.radius || 1.6;
-  const geometry = new THREE.IcosahedronGeometry(radius, 2);
+  const parentStack = (parentPlanet.config.name || 'python').toLowerCase();
+  const beaconHex = STACK_BEACON_COLORS[parentStack] || 0xf59e0b;
 
-  // Subtle procedural vertex displacement for craggy asteroid/moon look
-  const posAttr = geometry.attributes.position;
+  // 1. Chiseled Crystalline Faceted Geometry
+  const rawGeo = new THREE.IcosahedronGeometry(radius, 1);
+  const facetedGeo = rawGeo.toNonIndexed(); // Guarantees distinct face normals for sharp facet edges
+
+  // Displace vertices to create geometric crystalline fractures
+  const posAttr = facetedGeo.attributes.position;
   for (let i = 0; i < posAttr.count; i++) {
     const vx = posAttr.getX(i);
     const vy = posAttr.getY(i);
     const vz = posAttr.getZ(i);
-    const noise = 1.0 + (Math.sin(vx * 3.0) * Math.cos(vy * 3.0) * Math.sin(vz * 3.0)) * 0.08;
+    const noise = 1.0 + (Math.sin(vx * 4.0) * Math.cos(vy * 4.0) * Math.sin(vz * 4.0)) * 0.18;
     posAttr.setXYZ(i, vx * noise, vy * noise, vz * noise);
   }
-  geometry.computeVertexNormals();
+  facetedGeo.computeVertexNormals();
 
   const material = new THREE.MeshStandardMaterial({
     color: config.isMajor ? 0xe2e8f0 : 0x94a3b8,
-    normalMap: sharedMoonNormalMap,
-    normalScale: new THREE.Vector2(1.8, 1.8),
-    roughness: 0.88,
-    metalness: 0.12
+    roughness: 0.35, // Polished crystalline facet reflections
+    metalness: 0.65,
+    flatShading: true
   });
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(facetedGeo, material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.userData = {
@@ -49,9 +53,34 @@ export function createMoon(config, parentPlanet) {
   };
   group.add(mesh);
 
-  // 2. Fading 3D Orbit Trail around parent planet
-  const trailSegments = 64;
+  // 2. Central Glowing Core Beacon
+  const beaconGeo = new THREE.SphereGeometry(radius * 0.42, 16, 16);
+  const beaconMat = new THREE.MeshBasicMaterial({
+    color: beaconHex,
+    transparent: true,
+    opacity: 0.95
+  });
+  const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
+  group.add(beaconMesh);
+
+  // Subtle Outer Core Glow Halo
+  const haloGeo = new THREE.SphereGeometry(radius * 0.72, 16, 16);
+  const haloMat = new THREE.MeshBasicMaterial({
+    color: beaconHex,
+    transparent: true,
+    opacity: 0.28,
+    blending: THREE.AdditiveBlending
+  });
+  const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+  group.add(haloMesh);
+
+  // 3. Luminous Fading Orbit Ribbon around parent planet
+  const trailSegments = 84;
   const trailPoints = [];
+  const trailColors = [];
+  const baseColor = new THREE.Color(beaconHex);
+  const dimColor = new THREE.Color(0x334155);
+
   for (let i = 0; i <= trailSegments; i++) {
     const theta = (i / trailSegments) * Math.PI * 2;
     trailPoints.push(new THREE.Vector3(
@@ -59,12 +88,20 @@ export function createMoon(config, parentPlanet) {
       Math.sin(theta) * config.orbitRadius * (config.inclination || 0.1),
       Math.sin(theta) * config.orbitRadius
     ));
+
+    // Gradient along arc: brighter near major nodes
+    const alpha = config.isMajor ? 0.35 : 0.15;
+    const c = dimColor.clone().lerp(baseColor, Math.sin(theta * 2.0) * 0.3 + 0.3);
+    trailColors.push(c.r, c.g, c.b);
   }
+
   const trailGeo = new THREE.BufferGeometry().setFromPoints(trailPoints);
+  trailGeo.setAttribute('color', new THREE.Float32BufferAttribute(trailColors, 3));
+
   const trailMat = new THREE.LineBasicMaterial({
-    color: 0x94a3b8,
+    vertexColors: true,
     transparent: true,
-    opacity: config.isMajor ? 0.22 : 0.08,
+    opacity: config.isMajor ? 0.45 : 0.18,
     depthWrite: false
   });
   const trailLine = new THREE.Line(trailGeo, trailMat);
@@ -76,16 +113,28 @@ export function createMoon(config, parentPlanet) {
   return {
     group,
     mesh,
+    beaconMesh,
+    haloMesh,
     trailLine,
     config,
     parentPlanet,
     highlight(active) {
-      trailMat.color.set(active ? 0xf59e0b : 0x94a3b8);
-      trailMat.opacity = active ? 0.8 : (config.isMajor ? 0.22 : 0.08);
-      material.color.set(active ? 0xfff5ea : (config.isMajor ? 0xe2e8f0 : 0x94a3b8));
+      trailMat.opacity = active ? 0.95 : (config.isMajor ? 0.45 : 0.18);
+      material.color.set(active ? 0xffffff : (config.isMajor ? 0xe2e8f0 : 0x94a3b8));
+      beaconMat.opacity = active ? 1.0 : 0.95;
+      haloMesh.scale.setScalar(active ? 1.6 : 1.0);
     },
-    update(dt) {
+    update(dt, time = 0) {
       currentAngle += orbitSpeed * dt;
+
+      // Tidal lock rotation + slight axial precession
+      mesh.rotation.y += 0.8 * dt;
+      mesh.rotation.x = Math.sin(time * 0.5) * 0.15;
+
+      // Beacon breathing pulse
+      const pulse = 1.0 + Math.sin(time * 3.5 + config.orbitRadius) * 0.22;
+      beaconMesh.scale.setScalar(pulse);
+      haloMesh.scale.setScalar(pulse * 1.15);
 
       // Local coordinate relative to parent planet
       const localX = Math.cos(currentAngle) * orbitRadius;
@@ -98,12 +147,6 @@ export function createMoon(config, parentPlanet) {
         parentPos.y + localY,
         parentPos.z + localZ
       );
-
-      // Tidal lock: keep same face oriented toward parent
-      mesh.rotation.y = currentAngle + Math.PI * 0.5;
-
-      // Update trail position to follow parent planet
-      trailLine.position.copy(parentPos);
     },
     getPosition() {
       return group.position;

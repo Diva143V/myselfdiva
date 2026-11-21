@@ -7,14 +7,6 @@ import { createStarfield } from '../components/Starfield.js';
 import { createSun } from '../components/Sun.js';
 import { createPlanet } from '../components/Planet.js';
 import { createMoon } from '../components/Moon.js';
-import {
-  createPythonPlanetTextures,
-  createCloudTexture,
-  createCSharpGasGiantTextures,
-  createRustPlanetTextures,
-  createTypeScriptPlanetTextures,
-  createCppPlanetTextures
-} from '../procedural/planetTextures.js';
 
 export class UniverseScene {
   constructor(canvasContainer, labelContainer) {
@@ -30,9 +22,9 @@ export class UniverseScene {
     this.maxDpr = this.isMobile ? 1.5 : 2.0;
     this.dpr = Math.min(window.devicePixelRatio || 1, this.maxDpr);
 
-    // 1. Scene & Camera Setup
+    // 1. Scene & Camera Setup (Deep space chiaroscuro fog)
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x06080d, 0.00045);
+    this.scene.fog = new THREE.FogExp2(0x04060a, 0.00038);
 
     this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 0.5, 3500);
     this.camera.position.set(0, 180, 420); // Initial deep-space overview
@@ -48,12 +40,12 @@ export class UniverseScene {
     this.renderer.setSize(this.width, this.height);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.08;
+    this.renderer.toneMappingExposure = 1.12;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.appendChild(this.renderer.domElement);
 
-    // 3. Subtle Cosmic Ambient Fill
-    const ambientLight = new THREE.AmbientLight(0x090d18, 0.35);
+    // 3. Ultra-subtle Cosmic Starlight Fill (High Chiaroscuro Contrast)
+    const ambientLight = new THREE.AmbientLight(0x040712, 0.18);
     this.scene.add(ambientLight);
 
     // 4. Starfield & Deep Space Nebulae
@@ -95,15 +87,7 @@ export class UniverseScene {
   }
 
   setupPlanetsAndMoons() {
-    // Texture generators (procedural PBR sets)
-    const pythonTex = createPythonPlanetTextures(1024, 512);
-    const pythonCloudTex = createCloudTexture(1024, 512);
-    const csharpTex = createCSharpGasGiantTextures(1024, 512);
-    const rustTex = createRustPlanetTextures(1024, 512);
-    const typeScriptTex = createTypeScriptPlanetTextures(1024, 512);
-    const cppTex = createCppPlanetTextures(1024, 512);
-
-    // --- PLANET 1: PYTHON (Ocean World) ---
+    // --- PLANET 1: PYTHON (Ocean Abyss & Bioluminescent Grid) ---
     const python = createPlanet({
       name: 'Python',
       id: 'python',
@@ -113,16 +97,7 @@ export class UniverseScene {
       orbitSpeed: 0.0035,
       initialAngle: 0.6,
       inclination: 0.04,
-      rotationSpeed: 0.004,
-      hasClouds: true,
-      atmosphereColor: [0.22, 0.74, 0.97],
-      textures: {
-        colorMap: pythonTex.colorMap,
-        normalMap: pythonTex.normalMap,
-        roughnessMap: pythonTex.roughnessMap,
-        cloudMap: pythonCloudTex
-      },
-      materialProps: {}
+      rotationSpeed: 0.004
     });
     this.planets.python = python;
     this.scene.add(python.group);
@@ -180,7 +155,7 @@ export class UniverseScene {
       inclination: -0.09
     });
 
-    // --- PLANET 2: C# / .NET (Banded Gas Giant) ---
+    // --- PLANET 2: C# / .NET (Banded Jovian Giant & Amber Vortex) ---
     const csharp = createPlanet({
       name: 'C# / .NET',
       id: 'csharp',
@@ -191,12 +166,7 @@ export class UniverseScene {
       initialAngle: 2.3,
       inclination: -0.06,
       rotationSpeed: 0.007,
-      isGasGiant: true,
-      atmosphereColor: [0.96, 0.62, 0.04],
-      textures: {
-        colorMap: csharpTex.colorMap
-      },
-      materialProps: { roughness: 0.55 }
+      isGasGiant: true
     });
     this.planets.csharp = csharp;
     this.scene.add(csharp.group);
@@ -217,7 +187,7 @@ export class UniverseScene {
       inclination: 0.18
     });
 
-    // --- PLANET 3: RUST (Rusted Desert World) ---
+    // --- PLANET 3: RUST (Scorched Terracotta & Chasm Rifts) ---
     const rust = createPlanet({
       name: 'Rust',
       id: 'rust',
@@ -227,13 +197,7 @@ export class UniverseScene {
       orbitSpeed: 0.0016,
       initialAngle: 4.2,
       inclination: 0.08,
-      rotationSpeed: 0.0035,
-      atmosphereColor: [0.98, 0.45, 0.15],
-      textures: {
-        colorMap: rustTex.colorMap,
-        normalMap: rustTex.normalMap
-      },
-      materialProps: { roughness: 0.88, metalness: 0.22 }
+      rotationSpeed: 0.0035
     });
     this.planets.rust = rust;
     this.scene.add(rust.group);
@@ -254,7 +218,7 @@ export class UniverseScene {
       inclination: -0.14
     });
 
-    // --- PLANET 4: TYPESCRIPT (Icy Blue Ringed World) ---
+    // --- PLANET 4: TYPESCRIPT (Cryogenic Ice World & Planetary Rings) ---
     const typeScript = createPlanet({
       name: 'TypeScript',
       id: 'typescript',
@@ -265,14 +229,7 @@ export class UniverseScene {
       initialAngle: 5.1,
       inclination: -0.05,
       rotationSpeed: 0.004,
-      hasRings: true,
-      atmosphereColor: [0.55, 0.75, 1.0],
-      textures: {
-        colorMap: typeScriptTex.colorMap,
-        normalMap: typeScriptTex.normalMap,
-        ringMap: typeScriptTex.ringMap
-      },
-      materialProps: { roughness: 0.32, metalness: 0.08 }
+      hasRings: true
     });
     this.planets.typescript = typeScript;
     this.scene.add(typeScript.group);
@@ -292,7 +249,7 @@ export class UniverseScene {
       inclination: 0.1
     });
 
-    // --- PLANET 5: C++ (Volcanic Molten Lava World) ---
+    // --- PLANET 5: C++ (Obsidian Basalt & Breathing Magma Fissures) ---
     const cpp = createPlanet({
       name: 'C++',
       id: 'cpp',
@@ -302,13 +259,7 @@ export class UniverseScene {
       orbitSpeed: 0.0009,
       initialAngle: 1.5,
       inclination: 0.07,
-      rotationSpeed: 0.003,
-      atmosphereColor: [0.92, 0.35, 0.08],
-      textures: {
-        colorMap: cppTex.colorMap,
-        emissiveMap: cppTex.emissiveMap
-      },
-      materialProps: { isVolcanic: true }
+      rotationSpeed: 0.003
     });
     this.planets.cpp = cpp;
     this.scene.add(cpp.group);
@@ -389,9 +340,12 @@ export class UniverseScene {
     window.addEventListener('resize', () => this.resize(), { passive: true });
   }
 
-  focusOnBody(bodyId) {
-    let targetObj = this.moons[bodyId] || this.planets[bodyId];
-    if (bodyId === 'sun') {
+  focusOnBody(bodyInput) {
+    let targetObj = typeof bodyInput === 'string'
+      ? (this.moons[bodyInput] || this.planets[bodyInput])
+      : bodyInput;
+
+    if (bodyInput === 'sun') {
       this.focusedTarget = {
         getPosition: () => new THREE.Vector3(0, 0, 0),
         offset: new THREE.Vector3(0, 28, 65)
@@ -401,11 +355,23 @@ export class UniverseScene {
 
     if (!targetObj) return;
 
-    const offsetDist = targetObj.config.radius * 3.8 + 14;
+    // Calculate 3/4 dramatic vantage displaying both sunlit limb and glowing night terminator
+    const bodyPos = targetObj.getPosition();
+    const sunPos = this.sun.group.position;
+    const sunToBody = new THREE.Vector3().subVectors(bodyPos, sunPos).normalize();
+    // Perpendicular vector for 3/4 angle
+    const sideVec = new THREE.Vector3(-sunToBody.z, 0.42, sunToBody.x).normalize();
+
+    const offsetDist = (targetObj.config?.radius || 10) * 3.5 + 18;
+    const offset = sunToBody.clone().multiplyScalar(0.65)
+      .add(sideVec.multiplyScalar(0.75))
+      .normalize()
+      .multiplyScalar(offsetDist);
+
     this.focusedTarget = {
       targetObj,
       getPosition: () => targetObj.getPosition(),
-      offset: new THREE.Vector3(offsetDist * 0.7, offsetDist * 0.45, offsetDist)
+      offset
     };
 
     if (targetObj.highlight) {
@@ -440,13 +406,16 @@ export class UniverseScene {
   }
 
   update(dt, timestamp) {
-    // 1. Advance Celestial Orbits
-    Object.values(this.planets).forEach(p => p.update(dt));
-    Object.values(this.moons).forEach(m => m.update(dt));
+    const time = (timestamp || performance.now()) * 0.001;
+    const sunPos = this.sun.group.position;
 
-    // 2. Sun Convection Granulation
-    this.sun.update(timestamp * 0.001, this.camera);
-    this.starfield.update(timestamp * 0.001);
+    // 1. Advance Celestial Orbits & GPU Shaders
+    Object.values(this.planets).forEach(p => p.update(dt, time, sunPos));
+    Object.values(this.moons).forEach(m => m.update(dt, time));
+
+    // 2. Sun Convection Granulation & Starfield
+    this.sun.update(time, this.camera);
+    this.starfield.update(time);
 
     // 3. Raycast Hover Feedback
     this.raycaster.setFromCamera(this.mouse, this.camera);
@@ -470,7 +439,7 @@ export class UniverseScene {
 
     // 4. Camera Position Interpolation
     if (this.focusedTarget) {
-      // Zoomed in on a focused planet or moon
+      // Zoomed in on a focused planet or moon (3/4 vantage)
       const bodyPos = this.focusedTarget.getPosition();
       this.targetCamPos.copy(bodyPos).add(this.focusedTarget.offset);
       this.targetLookAt.copy(bodyPos);
