@@ -510,7 +510,7 @@ body {
    ============================================================ */
 .scroll-flight-track {
   position: relative;
-  height: 390vh; /* Scroll volume that scrubs camera spline */
+  height: 310vh; /* Calibrated scroll volume for responsive, seamless transition */
   pointer-events: none;
   z-index: 20;
 }
@@ -706,10 +706,10 @@ body {
 .calm-universe-sections {
   position: relative;
   z-index: 30;
-  background: linear-gradient(to bottom, rgba(6, 8, 13, 0.6) 0%, rgba(6, 8, 13, 0.96) 200px);
+  background: linear-gradient(to bottom, rgba(6, 8, 13, 0.6) 0%, rgba(6, 8, 13, 0.96) 120px);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  padding-top: 5rem;
+  padding-top: 2.75rem;
   padding-bottom: 4rem;
   border-top: 1px solid var(--space-border);
 }

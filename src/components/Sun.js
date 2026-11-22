@@ -9,11 +9,11 @@ export function createSun(radius = 36) {
   const group = new THREE.Group();
 
   // 1. Central Point Light for planetary illumination
-  const sunLight = new THREE.PointLight(0xfffaed, 2.8, 0, 0);
+  const sunLight = new THREE.PointLight(0xfff5e6, 3.2, 0, 0);
   sunLight.position.set(0, 0, 0);
   group.add(sunLight);
 
-  // 2. Photosphere Mesh with Procedural Convective Granulation & Sunspots
+  // 2. Photosphere Mesh with Procedural Convective Granulation (Zero Black Spots)
   const geometry = new THREE.SphereGeometry(radius, 64, 64);
   const material = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.clone(SunShader.uniforms),
@@ -25,19 +25,19 @@ export function createSun(radius = 36) {
   group.add(photosphere);
 
   // 3. Multi-Stage Solar Corona (Inner K-Corona & Outer Magnetic Streamers)
-  // Photosphere limb is at radius / (radius * 2.6) ~= 0.385 of the corona canvas
+  // Photosphere limb is at radius / (radius * 2.8) ~= 0.357 of the corona canvas
   const coronaCanvas = document.createElement('canvas');
   coronaCanvas.width = 512;
   coronaCanvas.height = 512;
   const cCtx = coronaCanvas.getContext('2d');
   
   const radGrad = cCtx.createRadialGradient(256, 256, 0, 256, 256, 256);
-  // Center is subtle so photosphere surface detail remains visible
-  radGrad.addColorStop(0, 'rgba(255, 235, 180, 0.05)');
-  radGrad.addColorStop(0.32, 'rgba(255, 215, 120, 0.12)');
-  radGrad.addColorStop(0.385, 'rgba(255, 195, 60, 0.55)'); // Bright chromospheric limb ring
-  radGrad.addColorStop(0.55, 'rgba(245, 140, 15, 0.22)');
-  radGrad.addColorStop(0.78, 'rgba(180, 75, 5, 0.06)');
+  // Radiant incandescent solar glow envelope
+  radGrad.addColorStop(0, 'rgba(255, 245, 210, 0.16)');       // Warm incandescent core glow
+  radGrad.addColorStop(0.32, 'rgba(255, 220, 120, 0.28)');    // Chromospheric golden rim
+  radGrad.addColorStop(0.385, 'rgba(255, 185, 45, 0.68)');    // Radiant limb corona ring
+  radGrad.addColorStop(0.55, 'rgba(245, 135, 18, 0.32)');     // Intermediate corona flare
+  radGrad.addColorStop(0.78, 'rgba(195, 70, 5, 0.08)');       // Soft magnetic streamers falloff
   radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
   cCtx.fillStyle = radGrad;
@@ -111,15 +111,15 @@ export function createSun(radius = 36) {
 
       // Proximity exposure governor:
       // When user is inspecting a planet/moon, shrink corona so it never blinds the view
-      const targetScaleMult = hasFocusedTarget ? 1.5 : 2.6;
-      const targetOpacity = hasFocusedTarget ? 0.12 : 0.45;
+      const targetScaleMult = hasFocusedTarget ? 1.6 : 2.8;
+      const targetOpacity = hasFocusedTarget ? 0.18 : 0.55;
 
       const pulse = 1.0 + Math.sin(timeSec * 1.4) * 0.03;
       const curScale = radius * targetScaleMult * pulse;
 
       coronaSprite.scale.set(curScale, curScale, 1);
       coronaMat.opacity = THREE.MathUtils.lerp(coronaMat.opacity, targetOpacity, 0.08);
-      streakMat.opacity = THREE.MathUtils.lerp(streakMat.opacity, hasFocusedTarget ? 0.06 : 0.28, 0.08);
+      streakMat.opacity = THREE.MathUtils.lerp(streakMat.opacity, hasFocusedTarget ? 0.08 : 0.32, 0.08);
     }
   };
 }

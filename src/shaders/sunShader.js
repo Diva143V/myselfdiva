@@ -14,9 +14,9 @@ import * as THREE from 'three';
 export const SunShader = {
   uniforms: {
     uTime: { value: 0 },
-    uColorCore: { value: new THREE.Color(1.0, 0.94, 0.76) },    // Brilliant white-gold fusion upwelling
-    uColorMid: { value: new THREE.Color(0.96, 0.54, 0.08) },     // Solar amber chromosphere
-    uColorLimb: { value: new THREE.Color(0.68, 0.14, 0.01) },    // Deep limb-darkened orange-crimson
+    uColorCore: { value: new THREE.Color(1.0, 0.98, 0.88) },    // Brilliant incandescent white-gold core
+    uColorMid: { value: new THREE.Color(1.0, 0.72, 0.22) },     // Radiant warm solar amber
+    uColorLimb: { value: new THREE.Color(0.96, 0.44, 0.08) },    // Chromospheric warm golden-orange
     uGranulationScale: { value: 18.0 },
     uTurbulenceSpeed: { value: 0.16 }
   },
@@ -162,9 +162,8 @@ export const SunShader = {
       return total;
     }
 
-    // Magnetic Active Sunspot Generator
-    // Returns vec3(umbra, penumbra, faculae)
-    vec3 evaluateSunspots(vec3 p, float t) {
+    // Magnetic Active Plage & Flare Generator (Warm bright incandescent regions - Zero black spots)
+    float evaluateActivePlages(vec3 p, float t) {
       vec3 unitP = normalize(p);
       float rotSpeed = 0.035 * (1.0 - 0.22 * unitP.y * unitP.y);
       float angle = t * rotSpeed;
@@ -172,10 +171,10 @@ export const SunShader = {
       float sa = sin(angle);
       vec3 rotP = vec3(unitP.x * ca - unitP.z * sa, unitP.y, unitP.x * sa + unitP.z * ca);
 
-      // Active sunspot latitudes: concentrated around y in [-0.42, -0.12] and [0.12, 0.42]
+      // Active solar latitudes
       float latBand = smoothstep(0.06, 0.18, abs(rotP.y)) * (1.0 - smoothstep(0.38, 0.52, abs(rotP.y)));
 
-      // Sunspot clusters on solar disc
+      // Magnetic plage clusters on solar disc
       vec3 spotCenter1 = normalize(vec3(0.52, 0.24, 0.82));
       vec3 spotCenter2 = normalize(vec3(0.64, 0.20, 0.74));
       vec3 spotCenter3 = normalize(vec3(-0.45, -0.22, 0.86));
@@ -188,28 +187,20 @@ export const SunShader = {
 
       float minD = min(min(d1, d2 * 1.15), min(d3, d4 * 1.25));
 
-      // Umbra: dark cool core
-      float umbra = (1.0 - smoothstep(0.035, 0.11, minD)) * latBand;
-
-      // Penumbra: filamentary radial lanes
-      float penumbraMask = (1.0 - smoothstep(0.08, 0.26, minD)) * latBand;
-      float radialFilament = abs(snoise(rotP * 28.0));
-      float penumbra = penumbraMask * (1.0 - umbra) * (0.65 + 0.35 * radialFilament);
-
-      // Faculae: bright magnetic beaches surrounding spots
+      // Faculae / Plages: bright magnetic beaches and thermal flares
       float faculaeNoise = fbm(rotP * 12.0);
-      float faculae = smoothstep(0.08, 0.28, minD) * (1.0 - smoothstep(0.24, 0.52, minD)) * smoothstep(0.12, 0.60, faculaeNoise) * latBand;
+      float faculae = (1.0 - smoothstep(0.04, 0.32, minD)) * smoothstep(0.12, 0.60, faculaeNoise) * latBand;
 
-      return vec3(umbra, penumbra, faculae);
+      return faculae;
     }
 
     void main() {
       vec3 normal = normalize(vNormal);
       vec3 viewDir = normalize(vViewPosition);
 
-      // 1. Classical Astrophysical 5th-Order Limb Darkening
+      // 1. Classical Astrophysical 5th-Order Limb Darkening (Calibrated for warm glowing limb)
       float mu = max(dot(normal, viewDir), 0.0);
-      float limbDarkening = 0.35 + 0.65 * pow(mu, 0.75);
+      float limbDarkening = 0.48 + 0.52 * pow(mu, 0.65);
 
       // 2. Convective Bénard Granulation Cells
       float t = uTime * uTurbulenceSpeed;
@@ -232,42 +223,32 @@ export const SunShader = {
       // True polygonal granulation texture
       float granule = clamp(cellCenter * 0.65 + (1.0 - lane) * 0.50 + boilingNoise * 0.20, 0.0, 1.0);
 
-      // 3. Magnetic Active Sunspot System
-      vec3 spots = evaluateSunspots(vPosition, uTime);
-      float umbra = spots.x;
-      float penumbra = spots.y;
-      float faculae = spots.z;
+      // 3. Active Magnetic Plages (Zero black spots, purely radiant energy)
+      float faculae = evaluateActivePlages(vPosition, uTime);
 
       // 4. Color Thermal Gradient Synthesis
-      // Fusion core white-gold -> convective amber -> deep limb crimson
+      // Fusion core incandescent white-gold -> radiant amber -> warm golden limb
       vec3 plasmaColor = mix(uColorMid, uColorCore, pow(granule, 1.3));
       plasmaColor = mix(uColorLimb, plasmaColor, limbDarkening);
 
-      // Intergranular cooler lanes
-      plasmaColor = mix(plasmaColor, uColorLimb * 0.90, lane * 0.45);
+      // Intergranular warm lanes (subtle contrast without blackening)
+      plasmaColor = mix(plasmaColor, uColorLimb * 0.95, lane * 0.35);
 
-      // Apply faculae (bright magnetic burning plages)
-      vec3 faculaeColor = vec3(1.15, 1.10, 0.98);
-      plasmaColor = mix(plasmaColor, faculaeColor, faculae * 0.85);
-
-      // Apply penumbra (filamentary dusky amber) and umbra (cool dark core)
-      vec3 penumbraColor = vec3(0.35, 0.12, 0.02);
-      vec3 umbraColor = vec3(0.05, 0.02, 0.01);
-      plasmaColor = mix(plasmaColor, penumbraColor, penumbra * 0.90);
-      plasmaColor = mix(plasmaColor, umbraColor, umbra * 0.96);
+      // Apply faculae (bright radiant incandescent magnetic beaches)
+      vec3 faculaeColor = vec3(1.25, 1.18, 0.95);
+      plasmaColor = mix(plasmaColor, faculaeColor, faculae * 0.45);
 
       // 5. Chromospheric Limb Flare Prominences
       float limbGrazing = 1.0 - mu;
       float prominenceNoise = snoise(vPosition * 16.0 + vec3(0.0, t * 0.6, 0.0));
-      float prominences = smoothstep(0.84, 0.98, limbGrazing) * smoothstep(0.2, 0.7, prominenceNoise);
+      float prominences = smoothstep(0.80, 0.98, limbGrazing) * smoothstep(0.18, 0.70, prominenceNoise);
 
-      // 6. Filmic Luminance Compression (Prevents blowout while keeping radiant glow)
-      float spotDarkening = 1.0 - umbra * 0.88 - penumbra * 0.45;
-      float emission = (1.02 + pow(granule, 1.8) * 0.24 + prominences * 0.35) * spotDarkening;
+      // 6. Filmic Luminance Compression (Incandescent radiant glow without clipping blowout)
+      float emission = 1.08 + pow(granule, 1.5) * 0.32 + faculae * 0.35 + prominences * 0.45;
       vec3 finalColor = plasmaColor * emission;
 
-      vec3 compressed = finalColor / (finalColor + vec3(0.45));
-      compressed = pow(compressed, vec3(0.96)) * 1.30;
+      vec3 compressed = finalColor / (finalColor + vec3(0.38));
+      compressed = pow(compressed, vec3(0.94)) * 1.35;
 
       gl_FragColor = vec4(compressed, 1.0);
     }

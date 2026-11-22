@@ -315,8 +315,8 @@ export const GALAXY_CONFIG = {
       tags: ['C#', '.NET 8', 'WPF', 'Windows Live Captions', 'SQLite'],
       sourceUrl: 'https://github.com/Diva143V/LiveSubs',
       releaseUrl: 'https://github.com/Diva143V/LiveSubs/releases',
-      progressMin: 0.14,
-      progressMax: 0.33,
+      progressMin: 0.12,
+      progressMax: 0.32,
       cameraFraming: {
         elevationDeg: 28,
         distance: 36,
@@ -338,7 +338,7 @@ export const GALAXY_CONFIG = {
       tags: ['Python', 'ChromaDB', 'Ollama', 'Graph RAG', 'Reflex', 'Mixture of LLMs'],
       sourceUrl: 'https://github.com/Diva143V/Griffin',
       progressMin: 0.35,
-      progressMax: 0.54,
+      progressMax: 0.55,
       cameraFraming: {
         elevationDeg: 30,
         distance: 38,
@@ -359,8 +359,8 @@ export const GALAXY_CONFIG = {
       metric: '8 focused MCP tools (knox_begin, knox_context, knox_check, knox_trace, knox_record, knox_handoff, knox_ask, knox_update); tool definition footprint budgeted <= 850 tokens; 50-pair calibrated guardrail with 0.60 overlap threshold; 5.46 MB LZMA setup wizard.',
       tags: ['Rust 1.85+', 'SQLite WAL & FTS5', 'PetGraph', 'Tauri v2', 'React 19', 'D3 Physics'],
       sourceUrl: 'https://github.com/Diva143V/Knox',
-      progressMin: 0.56,
-      progressMax: 0.75,
+      progressMin: 0.58,
+      progressMax: 0.77,
       cameraFraming: {
         elevationDeg: 28,
         distance: 35,
@@ -381,8 +381,8 @@ export const GALAXY_CONFIG = {
       metric: 'Predicts peptide candidates matched to specific HLA alleles (e.g. HLA-A*02:01, melanoma, GRCh37); automated RNA-seq run validation checking matrix structure, sample-ID alignment, and batch-confounding.',
       tags: ['Python 3.11', 'Bun 1.3+', 'VEP', 'MHCflurry', 'uv', 'pytest', 'mypy'],
       sourceUrl: 'https://github.com/Diva143V/SyGriffin',
-      progressMin: 0.77,
-      progressMax: 0.98,
+      progressMin: 0.80,
+      progressMax: 0.99,
       cameraFraming: {
         elevationDeg: 34,
         distance: 44,
