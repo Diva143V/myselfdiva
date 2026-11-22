@@ -25,34 +25,34 @@ const PLANET_SHADERS = {
 // Atmospheric twilight palettes per world
 const ATMOSPHERE_PALETTES = {
   python: {
-    color: new THREE.Vector3(0.12, 0.72, 0.96),      // Azure horizon
-    twilight: new THREE.Vector3(0.98, 0.45, 0.12),   // Amber twilight
+    color: new THREE.Vector3(0.0, 0.90, 0.60),       // Emerald horizon
+    twilight: new THREE.Vector3(0.20, 1.0, 0.45),    // Bioluminescent green twilight
     power: 3.6,
-    intensity: 1.5
+    intensity: 1.8
   },
   csharp: {
-    color: new THREE.Vector3(0.95, 0.62, 0.18),      // Golden Jovian haze
-    twilight: new THREE.Vector3(1.0, 0.32, 0.05),    // Vermilion twilight
+    color: new THREE.Vector3(0.66, 0.33, 0.97),      // Electric Amethyst haze
+    twilight: new THREE.Vector3(0.85, 0.45, 1.0),    // Royal violet twilight
     power: 3.2,
-    intensity: 1.6
+    intensity: 1.8
   },
   rust: {
-    color: new THREE.Vector3(0.85, 0.35, 0.14),      // Copper mineral dust
-    twilight: new THREE.Vector3(0.88, 0.18, 0.06),   // Crimson terminator
+    color: new THREE.Vector3(0.98, 0.45, 0.09),      // Scorched copper dust
+    twilight: new THREE.Vector3(1.0, 0.25, 0.05),    // Volcanic crimson
     power: 4.0,
-    intensity: 1.4
+    intensity: 1.7
   },
   typescript: {
-    color: new THREE.Vector3(0.25, 0.82, 0.98),      // Cryogenic cyan
-    twilight: new THREE.Vector3(0.12, 0.95, 0.85),   // Electric teal
+    color: new THREE.Vector3(0.0, 0.94, 1.0),        // Cryogenic cyan
+    twilight: new THREE.Vector3(0.15, 0.75, 1.0),    // Electric azure
     power: 3.4,
-    intensity: 1.5
+    intensity: 1.8
   },
   cpp: {
-    color: new THREE.Vector3(0.85, 0.22, 0.05),      // Volcanic smoke
-    twilight: new THREE.Vector3(1.0, 0.55, 0.12),    // Thermal orange flare
+    color: new THREE.Vector3(0.94, 0.25, 0.25),      // Incandescent crimson
+    twilight: new THREE.Vector3(1.0, 0.45, 0.15),    // Thermal flare
     power: 4.2,
-    intensity: 1.8
+    intensity: 2.0
   }
 };
 
@@ -175,9 +175,9 @@ export function createPlanet(config) {
     ringMesh,
     surfaceMaterial,
     highlight(active) {
-      orbitMat.color.set(active ? 0xf59e0b : 0x94a3b8);
-      orbitMat.opacity = active ? 0.75 : 0.18;
-      atmoUniforms.uAtmosphereIntensity.value = active ? atmoConfig.intensity * 1.35 : atmoConfig.intensity;
+      orbitMat.color.set(active ? (config.color || 0xf59e0b) : 0x94a3b8);
+      orbitMat.opacity = active ? 0.85 : 0.18;
+      atmoUniforms.uAtmosphereIntensity.value = active ? atmoConfig.intensity * 2.2 : atmoConfig.intensity;
     },
     update(dt, time = 0, sunPosition = new THREE.Vector3(0, 0, 0)) {
       // Keplerian orbit motion

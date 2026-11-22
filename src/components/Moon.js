@@ -6,10 +6,10 @@ import * as THREE from 'three';
 
 // Stack color palette mapping for beacons
 const STACK_BEACON_COLORS = {
-  python: 0x00f0ff,     // Electric Cyan (Griffin, SyGriffin, Sita)
-  csharp: 0xf59e0b,     // Sun Amber (LiveSubs)
+  python: 0x00e599,     // Electric Emerald (Griffin, SyGriffin, Sita)
+  csharp: 0xa855f7,     // Vivid Amethyst (LiveSubs)
   rust: 0xf97316,       // Scorched Orange (Knox)
-  typescript: 0x38bdf8, // Glacial Blue (myselfdiva)
+  typescript: 0x00f0ff, // Cryogenic Cyan (myselfdiva)
   cpp: 0xef4444         // Incandescent Vermilion (Polaris, HackMe)
 };
 

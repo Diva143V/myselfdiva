@@ -34,7 +34,7 @@ export const GALAXY_CONFIG = {
       id: 'research',
       name: 'Research Systems',
       description: 'Biomedical AI, evidence contradiction engines, and neoantigen discovery.',
-      accent: '#38bdf8'
+      accent: '#00e599'
     },
     {
       id: 'infrastructure',
@@ -76,7 +76,7 @@ export const GALAXY_CONFIG = {
       initialAngle: 0.6,
       inclination: 0.04,
       rotationSpeed: 0.004,
-      color: 0x38bdf8,
+      color: 0x00e599,
       priority: 80,
       classification: 'Primary Language · Biomedical AI',
       orbit: 'Orbit 1 · Python',
@@ -143,7 +143,7 @@ export const GALAXY_CONFIG = {
       inclination: -0.05,
       rotationSpeed: 0.004,
       hasRings: true,
-      color: 0x3b82f6,
+      color: 0x00f0ff,
       priority: 80,
       classification: 'Primary Language · Interfaces & WebGL',
       orbit: 'Orbit 4 · TypeScript',
