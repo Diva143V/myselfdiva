@@ -26,7 +26,7 @@ function isWebGL2Available() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   const canvasContainer = document.getElementById('webgl-universe-container');
   const labelContainer = document.getElementById('labels-3d-overlay');
 
@@ -39,96 +39,114 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('is-static-fallback');
     console.info('Serving static complete version (WebGL fallback / prefers-reduced-motion active).');
     initStaticFallback();
+    setupMobileNav();
+    setupMonochromeToggle();
     return;
   }
 
-  // 1. Initialize Universe 3D Scene
-  const universeScene = new UniverseScene(canvasContainer, labelContainer);
+  let universeScene, postProcessing, governor, labelManager, probeModal, flightController;
 
-  // 2. Initialize Post-Processing Pipeline
-  const postProcessing = setupPostProcessing(
-    universeScene.renderer,
-    universeScene.scene,
-    universeScene.camera
-  );
+  try {
+    // 1. Initialize Universe 3D Scene
+    universeScene = new UniverseScene(canvasContainer, labelContainer);
 
-  // 3. Initialize Adaptive Quality Governor
-  const governor = new AdaptiveGovernor({
-    onQualityChange: (tier, scale) => {
-      universeScene.setQualityScale(scale);
-      postProcessing.setQuality(tier);
-      console.info(`Adaptive Governor: Quality adjusted to [${tier}] (scale: ${scale})`);
-    }
-  });
+    // 2. Initialize Post-Processing Pipeline
+    postProcessing = setupPostProcessing(
+      universeScene.renderer,
+      universeScene.scene,
+      universeScene.camera
+    );
 
-  // 4. Initialize 3D Label Manager with Collision Avoidance
-  const labelManager = new LabelManager(labelContainer);
+    // 3. Initialize Adaptive Quality Governor
+    governor = new AdaptiveGovernor({
+      onQualityChange: (tier, scale) => {
+        universeScene.setQualityScale(scale);
+        postProcessing.setQuality(tier);
+        console.info(`Adaptive Governor: Quality adjusted to [${tier}] (scale: ${scale})`);
+      }
+    });
 
-  // Dynamically register central Sun from GALAXY_CONFIG
-  labelManager.register(
-    GALAXY_CONFIG.sun.id,
-    GALAXY_CONFIG.sun.name,
-    'sun',
-    GALAXY_CONFIG.sun.priority,
-    () => universeScene.sun.group.position,
-    (id) => {
-      window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
-    }
-  );
+    // 4. Initialize 3D Label Manager with Collision Avoidance
+    labelManager = new LabelManager(labelContainer);
 
-  // Dynamically register Planets from GALAXY_CONFIG
-  GALAXY_CONFIG.planets.forEach(p => {
+    // Dynamically register central Sun from GALAXY_CONFIG
     labelManager.register(
-      p.id,
-      `${p.name} (Orbit ${p.orbitIndex})`,
-      'planet',
-      p.priority,
-      () => universeScene.planets[p.id].getPosition(),
+      GALAXY_CONFIG.sun.id,
+      GALAXY_CONFIG.sun.name,
+      'sun',
+      GALAXY_CONFIG.sun.priority,
+      () => universeScene.sun.group.position,
       (id) => {
         window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
       }
     );
-  });
 
-  // Dynamically register Moons from GALAXY_CONFIG
-  GALAXY_CONFIG.moons.forEach(m => {
-    const type = m.isMajor ? 'moon-major' : 'moon-minor';
-    labelManager.register(
-      m.id,
-      m.name,
-      type,
-      m.priority,
-      () => universeScene.moons[m.id].getPosition(),
-      (id) => {
-        window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
-      }
-    );
-  });
+    // Dynamically register Planets from GALAXY_CONFIG
+    GALAXY_CONFIG.planets.forEach(p => {
+      labelManager.register(
+        p.id,
+        `${p.name} (Orbit ${p.orbitIndex})`,
+        'planet',
+        p.priority,
+        () => universeScene.planets[p.id].getPosition(),
+        (id) => {
+          window.dispatchEvent(new CustomEvent('universe:select-planet', { detail: { planetId: id } }));
+        }
+      );
+    });
 
-  // 5. Initialize Probe Modal
-  const probeModal = new ProbeModal(universeScene);
+    // Dynamically register Moons from GALAXY_CONFIG
+    GALAXY_CONFIG.moons.forEach(m => {
+      const type = m.isMajor ? 'moon-major' : 'moon-minor';
+      labelManager.register(
+        m.id,
+        m.name,
+        type,
+        m.priority,
+        () => universeScene.moons[m.id].getPosition(),
+        (id) => {
+          window.dispatchEvent(new CustomEvent('universe:select-moon', { detail: { moonId: id } }));
+        }
+      );
+    });
 
-  // 6. Initialize Flight Controller & Choreography
-  const flightController = new FlightController(universeScene, probeModal);
+    // 5. Initialize Probe Modal
+    probeModal = new ProbeModal(universeScene);
 
-  // 7. Setup Explore Mode HUD & Controls
-  setupExploreHUD(universeScene, probeModal);
+    // 6. Initialize Flight Controller & Choreography
+    flightController = new FlightController(universeScene, probeModal);
 
-  // 8. Setup Mobile Destination Navigation Menu
-  setupMobileNav();
+    // 7. Setup Explore Mode HUD & Controls
+    setupExploreHUD(universeScene, probeModal);
 
-  // 9. Setup B&W Monochrome Noir Mode Toggle with persistence & 'B' shortcut
-  setupMonochromeToggle();
+    // 8. Setup Mobile Destination Navigation Menu
+    setupMobileNav();
 
-  // Expose for runtime telemetry & benchmark testing
-  window.__UNIVERSE__ = {
-    universeScene,
-    postProcessing,
-    governor,
-    labelManager,
-    flightController,
-    probeModal
-  };
+    // 9. Setup B&W Monochrome Noir Mode Toggle with persistence & 'B' shortcut
+    setupMonochromeToggle();
+
+    // Expose for runtime telemetry & benchmark testing
+    window.__UNIVERSE__ = {
+      universeScene,
+      postProcessing,
+      governor,
+      labelManager,
+      flightController,
+      probeModal
+    };
+  } catch (err) {
+    console.error('WebGL 3D Universe initialization failed, falling back to static presentation:', err);
+    document.body.classList.add('is-static-fallback');
+    initStaticFallback();
+    setupMobileNav();
+    setupMonochromeToggle();
+    const curtain = document.getElementById('ignition-curtain');
+    if (curtain) {
+      curtain.style.opacity = '0';
+      curtain.style.display = 'none';
+    }
+    return;
+  }
 
   // 9. Render Loop with Delta Time and Unified State Decision
   let animId = null;
@@ -224,7 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
     updateClock();
     setInterval(updateClock, 1000);
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 
 function setupExploreHUD(universeScene, probeModal) {
   const toggleBtn = document.getElementById('hud-mode-toggle');
@@ -346,6 +370,11 @@ function setupMonochromeToggle() {
 }
 
 function initStaticFallback() {
+  const curtain = document.getElementById('ignition-curtain');
+  if (curtain) {
+    curtain.style.opacity = '0';
+    curtain.style.display = 'none';
+  }
   const probeModal = document.getElementById('probe-modal');
   if (probeModal) {
     document.querySelectorAll('[data-inspect-celestial]').forEach(btn => {

@@ -589,6 +589,19 @@
     </div>
   </footer>
 
+  <!-- Fail-safe watchdog: guarantee curtain is dismissed even if 3D crashes or WebGL is unavailable -->
+  <script>
+    setTimeout(function() {
+      var curtain = document.getElementById('ignition-curtain');
+      if (curtain && window.getComputedStyle(curtain).display !== 'none') {
+        curtain.style.transition = 'opacity 0.8s ease-out';
+        curtain.style.opacity = '0';
+        curtain.style.pointerEvents = 'none';
+        setTimeout(function() { curtain.style.display = 'none'; }, 850);
+      }
+    }, 2200);
+  </script>
+
   <!-- Application Module Entry Point -->
   <script type="module" src="/src/main.js"></script>
 </body>

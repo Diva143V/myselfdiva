@@ -45,6 +45,12 @@ export class FlightController {
 
     if (!this.reducedMotion) {
       this.playStagedIgnition();
+    } else {
+      const overlay = document.getElementById('ignition-curtain');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        overlay.style.display = 'none';
+      }
     }
   }
 
@@ -356,7 +362,7 @@ export class FlightController {
     const overlay = document.getElementById('ignition-curtain');
     const heroContent = document.querySelector('.hero-cinematic-content');
     const heroWords = document.querySelectorAll('.hero-word');
-    const heroRest = document.querySelectorAll('.hero-status-pill, .hero-positioning, .hero-meta-status, .hero-actions');
+    const heroRest = document.querySelectorAll('.hero-badge, .hero-status-pill, .hero-positioning, .hero-meta-status, .hero-actions');
 
     const reducedMotion = this.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });

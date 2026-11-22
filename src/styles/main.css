@@ -75,14 +75,27 @@ body {
   overflow: hidden;
 }
 
-/* Staged Ignition Curtain */
+/* Staged Ignition Curtain with Guaranteed Fail-Safe Fallback */
+@keyframes curtainAutoClear {
+  0%, 75% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
 #ignition-curtain {
   position: fixed;
   inset: 0;
   background: #000000;
   z-index: 900;
   pointer-events: none;
-  transition: opacity 1.4s ease-out;
+  transition: opacity 1.2s ease-out, visibility 1.2s ease-out;
+  animation: curtainAutoClear 2.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Projected 3D Labels */

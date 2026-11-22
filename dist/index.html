@@ -31,12 +31,12 @@
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Space+Grotesk:ital,wght@0,400..700;1,400..700&display=swap"
     rel="stylesheet">
 
-  <script type="module" crossorigin src="/assets/index-flek-QWA.js"></script>
+  <script type="module" crossorigin src="/assets/index-BGxePnYS.js"></script>
   <link rel="modulepreload" crossorigin href="/assets/three-C9Ks7P2h.js">
   <link rel="modulepreload" crossorigin href="/assets/gsap-Jiz4vAvE.js">
   <link rel="modulepreload" crossorigin href="/assets/postprocessing-Cyowcl8P.js">
-  <link rel="modulepreload" crossorigin href="/assets/lenis-BXjoyVLH.js">
-  <link rel="stylesheet" crossorigin href="/assets/index-DEyddObj.css">
+  <link rel="modulepreload" crossorigin href="/assets/lenis-9qxpAu3p.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-B8Y105v1.css">
 </head>
 
 <body>
@@ -593,6 +593,19 @@
       <a href="#hero">Back to top &uarr;</a>
     </div>
   </footer>
+
+  <!-- Fail-safe watchdog: guarantee curtain is dismissed even if 3D crashes or WebGL is unavailable -->
+  <script>
+    setTimeout(function() {
+      var curtain = document.getElementById('ignition-curtain');
+      if (curtain && window.getComputedStyle(curtain).display !== 'none') {
+        curtain.style.transition = 'opacity 0.8s ease-out';
+        curtain.style.opacity = '0';
+        curtain.style.pointerEvents = 'none';
+        setTimeout(function() { curtain.style.display = 'none'; }, 850);
+      }
+    }, 2200);
+  </script>
 
   <!-- Application Module Entry Point -->
 </body>

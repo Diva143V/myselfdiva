@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    target: 'esnext',
+    target: ['es2020', 'safari14', 'chrome87', 'firefox78', 'edge88'],
     minify: 'esbuild',
     rollupOptions: {
       output: {
