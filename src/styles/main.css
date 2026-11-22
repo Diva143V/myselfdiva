@@ -381,22 +381,25 @@ body {
 }
 
 /* ============================================================
-   MONOCHROME NOIR MODE (HIGH-CONTRAST B&W)
+   MONOCHROME / WHITE ACCENT MODE (HIGH-CONTRAST B&W UI)
+   The 3D cosmos (Sun, planets, moons) retains full photorealistic color!
    ============================================================ */
-#webgl-universe-container,
 .calm-universe-sections,
 .flight-deck,
 .nav-header {
   transition: filter 0.5s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease;
 }
 
+/* Ensure 3D WebGL cosmos (Sun, planets, moons) retains 100% full vibrant color */
 html.is-monochrome #webgl-universe-container {
-  filter: grayscale(100%) contrast(116%) brightness(98%);
+  filter: none;
 }
 
 html.is-monochrome {
+  --amber-core: #ffffff;
   --amber-bright: #ffffff;
   --amber-glow: #e2e8f0;
+  --amber-subtle: rgba(255, 255, 255, 0.08);
   --amber-border: rgba(255, 255, 255, 0.38);
   --space-border: rgba(255, 255, 255, 0.16);
   --space-card: rgba(16, 18, 24, 0.88);
@@ -428,7 +431,8 @@ html.is-monochrome .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-html.is-monochrome .hero-status-pill .label-indicator {
+html.is-monochrome .hero-status-pill .label-indicator,
+html.is-monochrome .hero-badge .label-indicator {
   background: #ffffff !important;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
 }
