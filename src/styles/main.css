@@ -313,6 +313,37 @@ body {
   background: rgba(10, 14, 23, 0.6);
 }
 
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(10, 14, 23, 0.8);
+  border: 1px solid var(--space-border);
+  border-radius: 4px;
+  color: var(--star-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  min-height: 44px;
+  transition: all 0.2s;
+}
+
+.theme-toggle-btn:hover,
+.theme-toggle-btn:focus-visible {
+  border-color: var(--amber-core);
+  color: var(--amber-core);
+}
+
+.theme-toggle-btn.is-active {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+}
+
 .motion-toggle-btn {
   display: inline-flex;
   align-items: center;
@@ -334,6 +365,97 @@ body {
 .motion-toggle-btn:hover {
   border-color: var(--amber-core);
   color: var(--amber-core);
+}
+
+.mobile-nav-tools {
+  display: none;
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--space-border);
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-tools {
+    display: block;
+  }
+}
+
+/* ============================================================
+   MONOCHROME NOIR MODE (HIGH-CONTRAST B&W)
+   ============================================================ */
+#webgl-universe-container,
+.calm-universe-sections,
+.flight-deck,
+.nav-header {
+  transition: filter 0.5s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease;
+}
+
+html.is-monochrome #webgl-universe-container {
+  filter: grayscale(100%) contrast(116%) brightness(98%);
+}
+
+html.is-monochrome {
+  --amber-bright: #ffffff;
+  --amber-glow: #e2e8f0;
+  --amber-border: rgba(255, 255, 255, 0.38);
+  --space-border: rgba(255, 255, 255, 0.16);
+  --space-card: rgba(16, 18, 24, 0.88);
+}
+
+html.is-monochrome .brand-solar .sun-icon {
+  background: radial-gradient(circle, #ffffff 30%, #94a3b8 100%);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+html.is-monochrome .btn-primary {
+  background: #ffffff;
+  color: #06080d;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.28);
+}
+
+html.is-monochrome .btn-primary:hover {
+  background: #e2e8f0;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.48);
+}
+
+html.is-monochrome .btn-secondary {
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+}
+
+html.is-monochrome .btn-secondary:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html.is-monochrome .hero-status-pill .label-indicator {
+  background: #ffffff !important;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+}
+
+html.is-monochrome .hero-word {
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #ffffff 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.30));
+}
+
+html.is-monochrome .meta-orbit-tag,
+html.is-monochrome .meta-status-tag,
+html.is-monochrome .flight-tag {
+  filter: grayscale(100%);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html.is-monochrome .beacon-blip {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+html.is-monochrome .flight-path-line {
+  filter: grayscale(100%);
 }
 
 /* Header clearance for all anchor destinations */

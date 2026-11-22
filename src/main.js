@@ -117,6 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 8. Setup Mobile Destination Navigation Menu
   setupMobileNav();
 
+  // 9. Setup B&W Monochrome Noir Mode Toggle with persistence & 'B' shortcut
+  setupMonochromeToggle();
+
   // Expose for runtime telemetry & benchmark testing
   window.__UNIVERSE__ = {
     universeScene,
@@ -285,6 +288,60 @@ function setupMobileNav() {
       menuBtn.setAttribute('aria-expanded', 'false');
       navLinks.classList.remove('is-open');
     });
+  });
+}
+
+function setupMonochromeToggle() {
+  const toggleBtns = document.querySelectorAll('.theme-toggle-btn');
+  if (!toggleBtns.length) return;
+
+  const STORAGE_KEY = 'portfolio-theme-mode';
+  let isMonochrome = localStorage.getItem(STORAGE_KEY) === 'monochrome';
+
+  function applyTheme(monochrome) {
+    isMonochrome = monochrome;
+    document.documentElement.classList.toggle('is-monochrome', isMonochrome);
+
+    toggleBtns.forEach(btn => {
+      btn.setAttribute('aria-pressed', isMonochrome ? 'true' : 'false');
+      btn.classList.toggle('is-active', isMonochrome);
+      const label = btn.querySelector('.label');
+      const icon = btn.querySelector('.icon');
+      if (label) label.textContent = isMonochrome ? 'Color Mode' : 'B&W Mode';
+      if (icon) icon.textContent = isMonochrome ? '◑' : '◐';
+      btn.setAttribute('aria-label', isMonochrome ? 'Switch to Color mode (Press B)' : 'Switch to B&W monochrome mode (Press B)');
+    });
+
+    try {
+      localStorage.setItem(STORAGE_KEY, isMonochrome ? 'monochrome' : 'color');
+    } catch (_) {}
+  }
+
+  // Initial apply
+  applyTheme(isMonochrome);
+
+  // Click listeners for all toggle buttons (header + mobile drawer)
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      applyTheme(!isMonochrome);
+    });
+  });
+
+  // Global 'B' key shortcut
+  window.addEventListener('keydown', (e) => {
+    // Ignore when focus is inside text inputs, textareas, or contenteditables
+    const activeEl = document.activeElement;
+    const isInput = activeEl && (
+      activeEl.tagName === 'INPUT' ||
+      activeEl.tagName === 'TEXTAREA' ||
+      activeEl.isContentEditable
+    );
+    if (isInput) return;
+
+    if (e.key === 'b' || e.key === 'B') {
+      e.preventDefault();
+      applyTheme(!isMonochrome);
+    }
   });
 }
 
