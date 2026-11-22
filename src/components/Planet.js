@@ -57,10 +57,9 @@ const ATMOSPHERE_PALETTES = {
 };
 
 export function createPlanet(config) {
-  const group = new THREE.Group();
-  group.name = 'Planet_' + config.name;
-
   const planetId = (config.id || config.name).toLowerCase();
+  const group = new THREE.Group();
+  group.name = 'Planet_' + planetId;
   const shaderDef = PLANET_SHADERS[planetId] || PythonPlanetShader;
 
   // 1. Core Planetary Sphere with Custom GPU Shader

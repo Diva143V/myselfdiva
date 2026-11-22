@@ -8,9 +8,12 @@ import * as THREE from 'three';
 const STACK_BEACON_COLORS = {
   python: 0x00e599,     // Electric Emerald (Griffin, SyGriffin, Sita)
   csharp: 0xa855f7,     // Vivid Amethyst (LiveSubs)
+  'c#': 0xa855f7,
+  'c# / .net': 0xa855f7,
   rust: 0xf97316,       // Scorched Orange (Knox)
   typescript: 0x00f0ff, // Cryogenic Cyan (myselfdiva)
-  cpp: 0xef4444         // Incandescent Vermilion (Polaris, HackMe)
+  cpp: 0xef4444,        // Incandescent Vermilion (Polaris, HackMe)
+  'c++': 0xef4444
 };
 
 export function createMoon(config, parentPlanet) {
@@ -18,7 +21,7 @@ export function createMoon(config, parentPlanet) {
   group.name = 'Moon_' + config.id;
 
   const radius = config.radius || 1.6;
-  const parentStack = (parentPlanet.config.name || 'python').toLowerCase();
+  const parentStack = (parentPlanet.config.id || parentPlanet.config.name || 'python').toLowerCase();
   const beaconHex = STACK_BEACON_COLORS[parentStack] || 0xf59e0b;
 
   // 1. Chiseled Crystalline Faceted Geometry

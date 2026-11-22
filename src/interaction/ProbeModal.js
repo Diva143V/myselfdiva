@@ -183,6 +183,11 @@ export const CELESTIAL_PROBE_DATABASE = {
   }
 };
 
+// Key lookup aliases for case/display variants
+CELESTIAL_PROBE_DATABASE['c#'] = CELESTIAL_PROBE_DATABASE.csharp;
+CELESTIAL_PROBE_DATABASE['c# / .net'] = CELESTIAL_PROBE_DATABASE.csharp;
+CELESTIAL_PROBE_DATABASE['c++'] = CELESTIAL_PROBE_DATABASE.cpp;
+
 export class ProbeModal {
   constructor(universeScene) {
     this.universe = universeScene;

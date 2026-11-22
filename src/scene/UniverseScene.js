@@ -254,12 +254,12 @@ export class UniverseScene {
 
       if (intersects.length > 0) {
         const obj = intersects[0].object;
-        if (obj.userData.isMoon) {
+        if (obj.userData?.isMoon) {
           window.dispatchEvent(new CustomEvent('universe:select-moon', {
             detail: { moonId: obj.userData.moonId }
           }));
-        } else if (obj.parent && obj.parent.name.startsWith('Planet_')) {
-          const planetId = obj.parent.name.replace('Planet_', '').toLowerCase();
+        } else if (obj.userData?.isPlanet || (obj.parent && obj.parent.name.startsWith('Planet_'))) {
+          const planetId = obj.userData?.planetId || obj.parent.name.replace('Planet_', '').toLowerCase();
           window.dispatchEvent(new CustomEvent('universe:select-planet', {
             detail: { planetId }
           }));
