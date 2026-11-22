@@ -142,9 +142,9 @@ export function createMoon(config, parentPlanet) {
     update(dt, time = 0, sunPosition = new THREE.Vector3(0, 0, 0)) {
       currentAngle += orbitSpeed * dt;
 
-      // Axial planetary rotation & slight precession
-      mesh.rotation.y += 0.45 * dt;
-      mesh.rotation.x = Math.sin(time * 0.4) * 0.08;
+      // Gentle cosmic axial rotation & subtle precession (matches slow planetary drift)
+      mesh.rotation.y += 0.02 * dt;
+      mesh.rotation.x = Math.sin(time * 0.2) * 0.04;
 
       // Pulse the physical outpost beacon
       const pulse = 1.0 + Math.sin(time * 3.8) * 0.28;
