@@ -47,12 +47,12 @@ export function createSun(radius = 24) {
     map: coronaTexture,
     blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.50,
     depthWrite: false
   });
 
   const coronaSprite = new THREE.Sprite(coronaMat);
-  coronaSprite.scale.set(radius * 4.6, radius * 4.6, 1);
+  coronaSprite.scale.set(radius * 2.6, radius * 2.6, 1);
   group.add(coronaSprite);
 
   // Anamorphic horizontal flare streak
@@ -61,8 +61,8 @@ export function createSun(radius = 24) {
   streakCanvas.height = 128;
   const sCtx = streakCanvas.getContext('2d');
   const streakGrad = sCtx.createRadialGradient(256, 64, 0, 256, 64, 256);
-  streakGrad.addColorStop(0, 'rgba(255, 240, 200, 0.65)');
-  streakGrad.addColorStop(0.2, 'rgba(245, 158, 11, 0.35)');
+  streakGrad.addColorStop(0, 'rgba(255, 240, 200, 0.45)');
+  streakGrad.addColorStop(0.2, 'rgba(245, 158, 11, 0.22)');
   streakGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0)');
   sCtx.fillStyle = streakGrad;
   sCtx.fillRect(0, 0, 512, 128);
@@ -72,22 +72,24 @@ export function createSun(radius = 24) {
     map: streakTexture,
     blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 0.45,
+    opacity: 0.35,
     depthWrite: false
   });
   const streakSprite = new THREE.Sprite(streakMat);
-  streakSprite.scale.set(radius * 9.0, radius * 1.8, 1);
+  streakSprite.scale.set(radius * 6.5, radius * 1.4, 1);
   group.add(streakSprite);
 
   return {
     group,
     light: sunLight,
     mesh: photosphere,
+    coronaSprite,
+    streakSprite,
     update(time, camera) {
       material.uniforms.uTime.value = time;
       // Gentle breathing pulse
       const pulse = 1.0 + Math.sin(time * 1.4) * 0.035;
-      coronaSprite.scale.set(radius * 4.6 * pulse, radius * 4.6 * pulse, 1);
+      coronaSprite.scale.set(radius * 2.6 * pulse, radius * 2.6 * pulse, 1);
     }
   };
 }

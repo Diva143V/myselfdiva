@@ -141,7 +141,7 @@ export class FlightController {
 
     // Desktop Guided Flight: Exactly ONE active project panel
     // Keep hero and work scene separate: before track starts, hide entire deck
-    if (progress <= 0.08 || progress >= 0.98) {
+    if (progress <= 0.08 || progress >= 0.99) {
       if (deck) {
         deck.style.opacity = '0';
         deck.style.pointerEvents = 'none';
@@ -174,7 +174,7 @@ export class FlightController {
     }
 
     // If between thresholds, maintain closest or active
-    if (activeIndex === -1 && progress > 0.08 && progress < 0.98) {
+    if (activeIndex === -1 && progress > 0.08 && progress < 0.99) {
       // Find closest
       let closestDist = Infinity;
       this.caseStudies.forEach((cs, i) => {

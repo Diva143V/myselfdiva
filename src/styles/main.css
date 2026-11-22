@@ -384,6 +384,9 @@ body {
   max-width: 860px;
   margin-inline: auto;
   pointer-events: auto;
+  background: radial-gradient(circle at 50% 50%, rgba(6, 8, 13, 0.76) 0%, rgba(6, 8, 13, 0.42) 60%, transparent 100%);
+  padding: 2.25rem 1.5rem;
+  border-radius: 24px;
 }
 
 .hero-badge {
@@ -498,7 +501,7 @@ body {
    ============================================================ */
 .scroll-flight-track {
   position: relative;
-  height: 450vh; /* Scroll volume that scrubs camera spline */
+  height: 390vh; /* Scroll volume that scrubs camera spline */
   pointer-events: none;
   z-index: 20;
 }
@@ -579,7 +582,8 @@ body {
 
 .stepper-counter {
   color: var(--star-bright);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
   text-transform: uppercase;
 }
 
@@ -587,12 +591,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.68rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--amber-core);
   margin-bottom: 0.65rem;
+}
+
+.meta-status-tag {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .flight-case-card h3 {
@@ -1190,11 +1200,19 @@ dialog#probe-modal::backdrop {
 }
 
 .camera-dock-tools {
-  display: inline-flex;
+  display: none;
   align-items: center;
   gap: 0.25rem;
   border-left: 1px solid var(--space-border);
   padding-left: 0.4rem;
+}
+
+body.is-explore-mode .camera-dock-tools {
+  display: inline-flex;
+}
+
+.camera-dock-tools[hidden] {
+  display: none !important;
 }
 
 .dock-tool-btn {

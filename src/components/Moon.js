@@ -40,7 +40,9 @@ export function createMoon(config, parentPlanet) {
     color: config.isMajor ? 0xe2e8f0 : 0x94a3b8,
     roughness: 0.35, // Polished crystalline facet reflections
     metalness: 0.65,
-    flatShading: true
+    flatShading: true,
+    emissive: new THREE.Color(beaconHex),
+    emissiveIntensity: 0
   });
 
   const mesh = new THREE.Mesh(facetedGeo, material);
@@ -113,6 +115,7 @@ export function createMoon(config, parentPlanet) {
   return {
     group,
     mesh,
+    material,
     beaconMesh,
     haloMesh,
     trailLine,

@@ -307,8 +307,8 @@ export const GALAXY_CONFIG = {
       tags: ['C#', '.NET 8', 'WPF', 'Windows Live Captions', 'SQLite'],
       sourceUrl: 'https://github.com/Diva143V/LiveSubs',
       releaseUrl: 'https://github.com/Diva143V/LiveSubs/releases',
-      progressMin: 0.15,
-      progressMax: 0.35,
+      progressMin: 0.14,
+      progressMax: 0.33,
       cameraFraming: {
         elevationDeg: 28,
         distance: 36,
@@ -329,8 +329,8 @@ export const GALAXY_CONFIG = {
       metric: '10 modular source collectors (PubMed, Europe PMC, Semantic Scholar, OpenAlex, ClinicalTrials, bioRxiv, ChEMBL, UniProt, PubChem, dbSNP); Oxford Levels of Evidence ranking; 7 specialized reasoning agents with automated priority fallback.',
       tags: ['Python', 'ChromaDB', 'Ollama', 'Graph RAG', 'Reflex', 'Mixture of LLMs'],
       sourceUrl: 'https://github.com/Diva143V/Griffin',
-      progressMin: 0.36,
-      progressMax: 0.55,
+      progressMin: 0.35,
+      progressMax: 0.54,
       cameraFraming: {
         elevationDeg: 30,
         distance: 38,
@@ -373,20 +373,20 @@ export const GALAXY_CONFIG = {
       metric: 'Predicts peptide candidates matched to specific HLA alleles (e.g. HLA-A*02:01, melanoma, GRCh37); automated RNA-seq run validation checking matrix structure, sample-ID alignment, and batch-confounding.',
       tags: ['Python 3.11', 'Bun 1.3+', 'VEP', 'MHCflurry', 'uv', 'pytest', 'mypy'],
       sourceUrl: 'https://github.com/Diva143V/SyGriffin',
-      progressMin: 0.76,
-      progressMax: 0.95,
+      progressMin: 0.77,
+      progressMax: 0.98,
       cameraFraming: {
-        elevationDeg: 32,
-        distance: 38,
-        targetOffsetX: -15,
-        targetOffsetY: 3
+        elevationDeg: 34,
+        distance: 44,
+        targetOffsetX: -14,
+        targetOffsetY: 2
       }
     }
   ],
 
   // Fallback / Overview flight spline waypoints
   splineWaypoints: [
-    { x: 0, y: 180, z: 420 },     // Step 0: Hero high vantage point
+    { x: 0, y: 220, z: 460 },     // Step 0: Hero elevated vantage point clear of text band
     { x: 45, y: 65, z: 175 },     // Step 1: Descending towards Orbit 1 (Python / Griffin)
     { x: 120, y: 45, z: 120 },    // Step 2: Gliding along Orbit 2 (C# / LiveSubs)
     { x: 160, y: 50, z: -80 },    // Step 3: Banking past Orbit 3 (Rust / Knox)

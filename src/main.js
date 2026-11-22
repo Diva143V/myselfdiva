@@ -264,6 +264,9 @@ function setupExploreHUD(universeScene, probeModal) {
   window.addEventListener('universe:mode-changed', (e) => {
     updateHUDView(e.detail.mode);
   });
+
+  // Sync initial state on load
+  updateHUDView(universeScene.mode);
 }
 
 function setupMobileNav() {

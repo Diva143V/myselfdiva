@@ -11,6 +11,7 @@
  */
 
 import * as THREE from 'three';
+import gsap from 'gsap';
 import { GALAXY_CONFIG } from '../config/galaxyConfig.js';
 import { createStarfield } from '../components/Starfield.js';
 import { createSun } from '../components/Sun.js';
@@ -102,6 +103,10 @@ export class UniverseScene {
     // Staged Ignition Sequence
     this.ignitionProgress = 0.0;
     this.isIgnited = false;
+
+    // Moon Night Mode State
+    this.activeNightMoon = null;
+    this.nightTween = null;
 
     this.bindEvents();
   }
@@ -372,8 +377,50 @@ export class UniverseScene {
     };
   }
 
+  enterNightMode(moonObj) {
+    if (this.nightTween) this.nightTween.kill();
+    this.activeNightMoon = moonObj;
+
+    this.nightTween = gsap.timeline({ defaults: { duration: 1.2, ease: 'power2.out' } });
+    if (this.sun.light) {
+      this.nightTween.to(this.sun.light, { intensity: 0.55 }, 0);
+    }
+    if (this.sun.coronaSprite?.material) {
+      this.nightTween.to(this.sun.coronaSprite.material, { opacity: 0.12 }, 0);
+    }
+    if (this.renderer) {
+      this.nightTween.to(this.renderer, { toneMappingExposure: 0.92 }, 0);
+    }
+    if (moonObj.material) {
+      this.nightTween.to(moonObj.material, { emissiveIntensity: 0.9 }, 0);
+    }
+  }
+
+  exitNightMode() {
+    if (!this.activeNightMoon) return;
+    if (this.nightTween) this.nightTween.kill();
+
+    const prevMoon = this.activeNightMoon;
+    this.activeNightMoon = null;
+
+    this.nightTween = gsap.timeline({ defaults: { duration: 0.9, ease: 'power2.inOut' } });
+    if (this.sun.light) {
+      this.nightTween.to(this.sun.light, { intensity: 2.8 }, 0);
+    }
+    if (this.sun.coronaSprite?.material) {
+      this.nightTween.to(this.sun.coronaSprite.material, { opacity: 0.50 }, 0);
+    }
+    if (this.renderer) {
+      this.nightTween.to(this.renderer, { toneMappingExposure: 1.08 }, 0);
+    }
+    if (prevMoon.material) {
+      this.nightTween.to(prevMoon.material, { emissiveIntensity: 0 }, 0);
+    }
+  }
+
   focusOnBody(bodyInput, customFraming) {
     if (bodyInput === 'sun') {
+      this.exitNightMode();
       this.focusedTarget = {
         getPosition: () => new THREE.Vector3(0, 0, 0),
         offset: new THREE.Vector3(0, 28, 65),
@@ -384,15 +431,27 @@ export class UniverseScene {
     }
 
     let targetObj = null;
+    let isMoon = false;
     if (typeof bodyInput === 'string') {
       targetObj = this.moons[bodyInput] || this.planets[bodyInput];
+      isMoon = !!this.moons[bodyInput];
     } else if (bodyInput && typeof bodyInput.getPosition === 'function') {
       targetObj = bodyInput;
+      isMoon = !!(targetObj.mesh?.userData?.isMoon || targetObj.config?.parentPlanetId);
     } else if (bodyInput?.id) {
       targetObj = this.moons[bodyInput.id] || this.planets[bodyInput.id];
+      isMoon = !!this.moons[bodyInput.id];
     }
 
     if (!targetObj) return;
+
+    if (isMoon) {
+      if (this.activeNightMoon !== targetObj) {
+        this.enterNightMode(targetObj);
+      }
+    } else {
+      this.exitNightMode();
+    }
 
     this.focusedTarget = {
       targetObj,
@@ -404,6 +463,7 @@ export class UniverseScene {
 
   clearFocus() {
     this.focusedTarget = null;
+    this.exitNightMode();
   }
 
   update(dt, time) {
@@ -469,7 +529,7 @@ export class UniverseScene {
         const splineLook = this.flightSpline.getPointAt(lookProgress);
 
         if (this.splineProgress < 0.12) {
-          this.targetLookAt.set(0, 0, 0); // Focus on central Sun during hero
+          this.targetLookAt.set(0, -30, 0); // Focus slightly below celestial plane so Sun/planets sit in upper quadrant
         } else {
           this.targetLookAt.copy(splineLook);
         }
