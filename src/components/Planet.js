@@ -25,72 +25,67 @@ const PLANET_SHADERS = {
 // Atmospheric twilight palettes per world
 const ATMOSPHERE_PALETTES = {
   python: {
-    color: new THREE.Vector3(0.0, 0.90, 0.60),       // Emerald horizon
-    twilight: new THREE.Vector3(0.20, 1.0, 0.45),    // Bioluminescent green twilight
-    power: 3.6,
-    intensity: 1.8
+    color: new THREE.Vector3(0.12, 0.65, 0.82),       // Natural azure/marine horizon
+    twilight: new THREE.Vector3(0.92, 0.45, 0.12),    // Golden sunset twilight
+    power: 5.5,
+    intensity: 0.65
   },
   csharp: {
-    color: new THREE.Vector3(0.66, 0.33, 0.97),      // Electric Amethyst haze
-    twilight: new THREE.Vector3(0.85, 0.45, 1.0),    // Royal violet twilight
-    power: 3.2,
-    intensity: 1.8
+    color: new THREE.Vector3(0.72, 0.48, 0.22),      // Amber Jovian upper haze
+    twilight: new THREE.Vector3(0.95, 0.55, 0.15),    // Warm terracotta twilight
+    power: 5.0,
+    intensity: 0.55
   },
   rust: {
-    color: new THREE.Vector3(0.98, 0.45, 0.09),      // Scorched copper dust
-    twilight: new THREE.Vector3(1.0, 0.25, 0.05),    // Volcanic crimson
-    power: 4.0,
-    intensity: 1.7
+    color: new THREE.Vector3(0.85, 0.42, 0.15),      // Scorched terracotta dust
+    twilight: new THREE.Vector3(0.25, 0.55, 0.88),    // Martian blue sunset
+    power: 5.8,
+    intensity: 0.48
   },
   typescript: {
-    color: new THREE.Vector3(0.0, 0.94, 1.0),        // Cryogenic cyan
-    twilight: new THREE.Vector3(0.15, 0.75, 1.0),    // Electric azure
-    power: 3.4,
-    intensity: 1.8
+    color: new THREE.Vector3(0.25, 0.75, 0.95),      // Cryogenic cyan mist
+    twilight: new THREE.Vector3(0.35, 0.82, 1.0),     // Electric azure
+    power: 5.2,
+    intensity: 0.58
   },
   cpp: {
-    color: new THREE.Vector3(0.94, 0.25, 0.25),      // Incandescent crimson
-    twilight: new THREE.Vector3(1.0, 0.45, 0.15),    // Thermal flare
-    power: 4.2,
-    intensity: 2.0
+    color: new THREE.Vector3(0.88, 0.25, 0.12),      // Volcanic cinder haze
+    twilight: new THREE.Vector3(1.0, 0.40, 0.08),     // Thermal flare
+    power: 5.8,
+    intensity: 0.50
   }
 };
 
 export function createPlanet(config) {
   const planetId = (config.id || config.name).toLowerCase();
   const group = new THREE.Group();
-  group.name = 'Planet_' + planetId;
+  group.name = `Planet_${config.name}`;
+
+  // 1. Procedural Planet Core Mesh (100% GPU Custom Shader)
   const shaderDef = PLANET_SHADERS[planetId] || PythonPlanetShader;
-
-  // 1. Core Planetary Sphere with Custom GPU Shader
-  const segments = config.isGasGiant ? 72 : 56;
-  const geometry = new THREE.SphereGeometry(config.radius, segments, segments);
-
-  const surfaceUniforms = THREE.UniformsUtils.clone(shaderDef.uniforms);
-  if (config.hasRings) {
-    surfaceUniforms.uRingInnerRadius = { value: config.radius * 1.45 };
-    surfaceUniforms.uRingOuterRadius = { value: config.radius * 2.5 };
-  }
-
+  const geometry = new THREE.SphereGeometry(config.radius, 96, 96);
+  
   const surfaceMaterial = new THREE.ShaderMaterial({
-    uniforms: surfaceUniforms,
+    uniforms: THREE.UniformsUtils.clone(shaderDef.uniforms),
     vertexShader: shaderDef.vertexShader,
     fragmentShader: shaderDef.fragmentShader
   });
 
   const surfaceMesh = new THREE.Mesh(geometry, surfaceMaterial);
-  surfaceMesh.castShadow = true;
-  surfaceMesh.receiveShadow = true;
+  surfaceMesh.castShadow = false;
+  surfaceMesh.receiveShadow = false;
   surfaceMesh.userData = {
     isPlanet: true,
-    planetId: planetId,
-    config: config
+    planetId: config.id,
+    name: config.name,
+    orbitRadius: config.orbitRadius,
+    priority: config.priority
   };
   group.add(surfaceMesh);
 
-  // 2. Directional Rayleigh Atmosphere Shell (Back-Face)
+  // 2. Directional Rayleigh Atmosphere Shell (Whisper-thin 2.2% hull)
   const atmoConfig = ATMOSPHERE_PALETTES[planetId] || ATMOSPHERE_PALETTES.python;
-  const atmoGeo = new THREE.SphereGeometry(config.radius * 1.038, 48, 48);
+  const atmoGeo = new THREE.SphereGeometry(config.radius * 1.022, 64, 64);
   const atmoUniforms = THREE.UniformsUtils.clone(AtmosphereShader.uniforms);
   atmoUniforms.uColor.value.copy(atmoConfig.color);
   atmoUniforms.uTwilightColor.value.copy(atmoConfig.twilight);
@@ -176,7 +171,7 @@ export function createPlanet(config) {
     highlight(active) {
       orbitMat.color.set(active ? (config.color || 0xf59e0b) : 0x94a3b8);
       orbitMat.opacity = active ? 0.85 : 0.18;
-      atmoUniforms.uAtmosphereIntensity.value = active ? atmoConfig.intensity * 2.2 : atmoConfig.intensity;
+      atmoUniforms.uAtmosphereIntensity.value = active ? atmoConfig.intensity * 2.0 : atmoConfig.intensity;
     },
     update(dt, time = 0, sunPosition = new THREE.Vector3(0, 0, 0)) {
       // Keplerian orbit motion
@@ -190,12 +185,16 @@ export function createPlanet(config) {
       // Axial planetary rotation
       surfaceMesh.rotation.y += rotationSpeed * dt;
 
-      // Update shader uniforms
+      // Update shader uniforms (convert time from milliseconds to seconds)
+      const timeSec = time * 0.001;
       if (surfaceMaterial.uniforms.uTime) {
-        surfaceMaterial.uniforms.uTime.value = time;
+        surfaceMaterial.uniforms.uTime.value = timeSec;
       }
       if (surfaceMaterial.uniforms.uSunPosition) {
         surfaceMaterial.uniforms.uSunPosition.value.copy(sunPosition);
+      }
+      if (surfaceMaterial.uniforms.uPlanetPosition) {
+        surfaceMaterial.uniforms.uPlanetPosition.value.copy(group.position);
       }
 
       // Update atmosphere uniforms

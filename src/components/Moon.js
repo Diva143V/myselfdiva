@@ -141,13 +141,14 @@ export function createMoon(config, parentPlanet) {
     },
     update(dt, time = 0, sunPosition = new THREE.Vector3(0, 0, 0)) {
       currentAngle += orbitSpeed * dt;
+      const timeSec = time * 0.001;
 
       // Gentle cosmic axial rotation & subtle precession (matches slow planetary drift)
       mesh.rotation.y += 0.02 * dt;
-      mesh.rotation.x = Math.sin(time * 0.2) * 0.04;
+      mesh.rotation.x = Math.sin(timeSec * 0.2) * 0.04;
 
       // Pulse the physical outpost beacon
-      const pulse = 1.0 + Math.sin(time * 3.8) * 0.28;
+      const pulse = 1.0 + Math.sin(timeSec * 3.8) * 0.28;
       beaconMesh.scale.setScalar(pulse);
 
       // Local coordinate relative to parent planet
@@ -158,7 +159,7 @@ export function createMoon(config, parentPlanet) {
       group.position.set(localX, localY, localZ);
 
       // Update shader uniforms
-      material.uniforms.uTime.value = time;
+      material.uniforms.uTime.value = timeSec;
       material.uniforms.uSunPosition.value.copy(sunPosition);
 
       const parentPos = parentPlanet.getPosition ? parentPlanet.getPosition() : parentPlanet.group.position;

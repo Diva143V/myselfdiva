@@ -1,21 +1,28 @@
 /**
- * planetShaders.js — 100% GPU Procedural Surface Shaders for Cinematic Sci-Fi Worlds
+ * planetShaders.js — 100% GPU Procedural Surface Shaders for Photorealistic Worlds
  * 
- * Evaluates 3D Simplex FBM and Voronoi in Cartesian (x, y, z) space on the sphere,
- * completely eliminating 2D equirectangular polar pinching and offering infinite resolution.
+ * Features:
+ * 1. Unified World-Space Lighting & Tangent-Space Bump Mapping (Zero View-Space Mismatch).
+ * 2. Strict Gustavson mod289 Simplex Noise (Zero Precision Discontinuities on Windows/DirectX).
+ * 3. Screen-Space Derivative Anti-Aliasing (fwidth) & Silhouette Fresnel Limb Attenuation.
+ * 4. Python World: Continental mountain relief, bathymetric ocean depth, cloud drop shadows, night cities.
+ * 5. C# World: Zonal counter-rotating jet streams, silky Jovian cloud belts, Great Amber Vortex.
+ * 6. Rust World: Valles Marineris stratified tectonic chasms, crater relief bump, polar dry-ice caps, Martian blue sunset.
+ * 7. TypeScript World: Glacial cyan striations, analytical ring shadow receiving, ice specular glint.
+ * 8. C++ World: Drifting obsidian basalt plates, jagged convective molten magma fissures, boiling lava convection.
  */
 
 import * as THREE from 'three';
 
 // ---------------------------------------------------------------------
-// Common GLSL Math & 3D Simplex Noise Snippets
+// Common GLSL Math & 3D Simplex / Voronoi Snippets
 // ---------------------------------------------------------------------
 export const GLSL_COMMON_3D_NOISE = /* glsl */ `
-  // Mod289 and permute utilities
-  vec4 permute(vec4 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+  vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
   vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
 
-  // 3D Simplex Noise by Ian McEwan, Ashima Arts / Stefan Gustavson
   float snoise(vec3 v) {
     const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
     const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
@@ -32,7 +39,7 @@ export const GLSL_COMMON_3D_NOISE = /* glsl */ `
     vec3 x2 = x0 - i2 + 2.0 * C.xxx;
     vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
 
-    i = mod(i, 289.0);
+    i = mod289(i);
     vec4 p = permute(permute(permute(
                i.z + vec4(0.0, i1.z, i2.z, 1.0))
              + i.y + vec4(0.0, i1.y, i2.y, 1.0))
@@ -76,69 +83,76 @@ export const GLSL_COMMON_3D_NOISE = /* glsl */ `
     return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
   }
 
-  // 3D Fractal Brownian Motion
   float fbm3D(vec3 p, int octaves) {
     float v = 0.0;
     float a = 0.5;
-    vec3 shift = vec3(100.0);
-    for (int i = 0; i < 6; ++i) {
+    vec3 shift = vec3(12.34, 56.78, 90.12);
+    for (int i = 0; i < 5; ++i) {
       if (i >= octaves) break;
       v += a * snoise(p);
-      p = p * 2.05 + shift;
+      p = p * 2.02 + shift;
       a *= 0.5;
     }
     return v;
   }
 
-  // Fast 3D Hash
   vec3 hash33(vec3 p) {
     p = fract(p * vec3(0.1031, 0.1030, 0.0973));
     p += dot(p, p.yxz + 33.33);
     return fract((p.xxy + p.yxx) * p.zyx);
   }
 
-  // 3D Voronoi Cellular Distance
-  float voronoi3D(vec3 p) {
+  // 3D Voronoi returning vec2(d1, d2)
+  vec2 voronoi3D(vec3 p) {
     vec3 b = floor(p);
     vec3 f = fract(p);
-    float d = 1.0;
+    float d1 = 8.0;
+    float d2 = 8.0;
     for (int z = -1; z <= 1; z++) {
       for (int y = -1; y <= 1; y++) {
         for (int x = -1; x <= 1; x++) {
           vec3 lattice = vec3(float(x), float(y), float(z));
           vec3 offset = hash33(b + lattice);
           vec3 diff = lattice + offset - f;
-          d = min(d, length(diff));
+          float d = length(diff);
+          if (d < d1) {
+            d2 = d1;
+            d1 = d;
+          } else if (d < d2) {
+            d2 = d;
+          }
         }
       }
     }
-    return d;
+    return vec2(d1, d2);
   }
 `;
 
 // Shared Vertex Shader for all spherical worlds
 export const PLANET_VERTEX_SHADER = /* glsl */ `
-  varying vec3 vPosition;
-  varying vec3 vNormal;
-  varying vec3 vWorldPosition;
-  varying vec3 vViewPosition;
+  varying vec3 vPosition;       // Normalized local position on unit sphere [-1, 1]
+  varying vec3 vWorldNormal;    // World-space geometric normal
+  varying vec3 vWorldPosition;  // World-space fragment position
+  varying vec3 vViewDir;        // World-space view direction towards camera
 
   void main() {
     vPosition = normalize(position);
-    vNormal = normalize(normalMatrix * normal);
+    
+    // Transform normal to world space (using modelMatrix rotation)
+    vWorldNormal = normalize((modelMatrix * vec4(normal, 0.0)).xyz);
 
     vec4 worldPos = modelMatrix * vec4(position, 1.0);
     vWorldPosition = worldPos.xyz;
 
-    vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
-    vViewPosition = -mvPos.xyz;
+    // View direction vector pointing from surface to camera in world space
+    vViewDir = normalize(cameraPosition - worldPos.xyz);
 
-    gl_Position = projectionMatrix * mvPos;
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
   }
 `;
 
 // ---------------------------------------------------------------------
-// 1. Python World: Ocean Abyss & Bioluminescent Continental Grid
+// 1. Python World: Ocean Bathymetry, Mountain Relief, Clouds & Shadows
 // ---------------------------------------------------------------------
 export const PythonPlanetShader = {
   uniforms: {
@@ -147,80 +161,137 @@ export const PythonPlanetShader = {
   },
   vertexShader: PLANET_VERTEX_SHADER,
   fragmentShader: /* glsl */ `
+    precision highp float;
     ${GLSL_COMMON_3D_NOISE}
 
     uniform float uTime;
     uniform vec3 uSunPosition;
 
     varying vec3 vPosition;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPosition;
-    varying vec3 vViewPosition;
+    varying vec3 vViewDir;
+
+    float pythonElevation(vec3 p) {
+      float continent = fbm3D(p * 2.2, 4);
+      float coastal = snoise(p * 4.8) * 0.22;
+      float elev = continent + coastal;
+      float mountainMask = smoothstep(0.08, 0.38, elev);
+      float mountains = pow(max(snoise(p * 7.5), 0.0), 2.2) * 0.45 * mountainMask;
+      return elev + mountains;
+    }
+
+    vec3 calculateMountainNormal(vec3 p, vec3 geomWorldNormal, vec3 viewDir, out float outElevation, out vec3 outT, out vec3 outB) {
+      vec3 up = abs(geomWorldNormal.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+      vec3 T = normalize(cross(up, geomWorldNormal));
+      vec3 B = cross(geomWorldNormal, T);
+      outT = T;
+      outB = B;
+
+      vec3 localUp = abs(p.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+      vec3 localT = normalize(cross(localUp, p));
+      vec3 localB = cross(p, localT);
+
+      float pixelWidth = length(fwidth(p));
+      float eps = max(0.012, pixelWidth * 1.6);
+
+      float h0 = pythonElevation(p);
+      float hT = pythonElevation(normalize(p + localT * eps));
+      float hB = pythonElevation(normalize(p + localB * eps));
+      outElevation = h0;
+
+      float dHdT = clamp((hT - h0) / eps, -1.5, 1.5);
+      float dHdB = clamp((hB - h0) / eps, -1.5, 1.5);
+
+      vec3 perturbed = normalize(geomWorldNormal - (T * dHdT + B * dHdB) * 0.12);
+
+      float limbFactor = clamp(dot(geomWorldNormal, viewDir), 0.0, 1.0);
+      float normalWeight = smoothstep(0.04, 0.28, limbFactor);
+      return normalize(mix(geomWorldNormal, perturbed, normalWeight));
+    }
 
     void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = normalize(vViewPosition);
+      vec3 geomNormal = vWorldNormal;
+      vec3 viewDir = vViewDir;
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
 
-      // Light angle & twilight terminator
-      float NdotL = dot(normal, lightDir);
-      float dayFactor = smoothstep(-0.15, 0.25, NdotL);
-      float twilight = smoothstep(-0.25, 0.1, NdotL) * smoothstep(0.35, 0.0, NdotL);
+      float elevation = 0.0;
+      vec3 T, B;
+      vec3 normal = calculateMountainNormal(vPosition, geomNormal, viewDir, elevation, T, B);
 
-      // 3D Procedural Terrain Elevation
-      vec3 p = vPosition * 3.4;
-      float elevation = fbm3D(p, 5);
+      // Physical day/night terminator in world space
+      float NdotL = dot(normal, lightDir);
+      float dayFactor = smoothstep(-0.06, 0.22, NdotL);
+      float twilight = smoothstep(-0.22, 0.06, NdotL) * (1.0 - smoothstep(0.0, 0.32, NdotL));
 
       vec3 surfaceColor;
+      float isWater = 0.0;
       float specular = 0.0;
 
-      if (elevation < 0.08) {
-        // --- OCEAN ABYSS ---
-        float depth = smoothstep(0.08, -0.4, elevation);
-        vec3 deepAbyss = vec3(0.02, 0.06, 0.16);
-        vec3 coastalShallow = vec3(0.0, 0.72, 0.88);
-        surfaceColor = mix(coastalShallow, deepAbyss, depth);
+      if (elevation < 0.06) {
+        // --- NATURAL BATHYMETRIC OCEAN DEPTH ---
+        isWater = 1.0;
+        float depth = 1.0 - smoothstep(-0.42, 0.06, elevation);
+        vec3 shallowReef = vec3(0.02, 0.52, 0.62);   // Natural turquoise shallows
+        vec3 midOcean = vec3(0.02, 0.26, 0.52);     // Azure continental shelf
+        vec3 deepAbyss = vec3(0.01, 0.05, 0.18);    // Deep oceanic abyss
+        
+        surfaceColor = mix(shallowReef, midOcean, smoothstep(0.0, 0.35, depth));
+        surfaceColor = mix(surfaceColor, deepAbyss, smoothstep(0.35, 1.0, depth));
 
-        // Sun Glint Specular on Water
+        // Sun Glint Specular on Water (Calibrated microfacet reflection)
         vec3 halfVec = normalize(lightDir + viewDir);
         float specAngle = max(dot(normal, halfVec), 0.0);
-        specular = pow(specAngle, 48.0) * 1.8 * dayFactor;
+        specular = pow(specAngle, 54.0) * 1.15 * dayFactor;
       } else {
-        // --- CONTINENTAL LANDMASS ---
-        float landHeight = smoothstep(0.08, 0.45, elevation);
-        vec3 lowLands = vec3(0.04, 0.14, 0.16);
-        vec3 highPlateaus = vec3(0.08, 0.22, 0.24);
-        surfaceColor = mix(lowLands, highPlateaus, landHeight);
+        // --- CONTINENTAL LANDMASS & MOUNTAINS ---
+        float landHeight = smoothstep(0.06, 0.52, elevation);
+        vec3 lowValleys = vec3(0.06, 0.24, 0.12);   // Temperate lush forest
+        vec3 savanna = vec3(0.26, 0.32, 0.15);      // Warm savanna grasslands
+        vec3 plateaus = vec3(0.38, 0.30, 0.20);     // Highland stone
+        vec3 snowPeaks = vec3(0.92, 0.95, 0.98);    // Glacial snowcaps
+        
+        surfaceColor = mix(lowValleys, savanna, smoothstep(0.0, 0.35, landHeight));
+        surfaceColor = mix(surfaceColor, plateaus, smoothstep(0.35, 0.72, landHeight));
+        surfaceColor = mix(surfaceColor, snowPeaks, smoothstep(0.72, 0.96, landHeight));
       }
 
-      // --- DYNAMIC CLOUD LAYER (3D Simplex Drift) ---
-      vec3 cloudCoord = vPosition * 4.2 + vec3(uTime * 0.018, uTime * 0.008, uTime * 0.012);
-      float cloudDensity = smoothstep(0.12, 0.65, fbm3D(cloudCoord, 4));
-      vec3 cloudColor = vec3(0.92, 0.96, 1.0);
+      // --- DYNAMIC CLOUDS WITH REAL DROP SHADOWS ---
+      float t = uTime * 0.016;
+      vec3 cloudCoord = vPosition * 3.8 + vec3(t * 1.2, t * 0.5, t * 0.8);
+      float cloudDensity = smoothstep(0.24, 0.68, fbm3D(cloudCoord, 4));
 
-      // Shadow cast by clouds onto land
-      surfaceColor *= (1.0 - cloudDensity * 0.42 * dayFactor);
-      surfaceColor = mix(surfaceColor, cloudColor, cloudDensity * 0.85);
+      // Cloud shadow projection along tangent light direction
+      vec3 shadowOffset = -(T * dot(lightDir, T) + B * dot(lightDir, B)) * 0.05;
+      vec3 shadowCoord = vPosition * 3.8 + shadowOffset + vec3(t * 1.2, t * 0.5, t * 0.8);
+      float cloudShadow = smoothstep(0.24, 0.70, fbm3D(shadowCoord, 4));
 
-      // --- NIGHT-SIDE BIOLUMINESCENT ENERGY GRID ---
+      surfaceColor *= (1.0 - cloudShadow * 0.48 * dayFactor);
+      vec3 cloudColor = vec3(0.96, 0.98, 1.0);
+      surfaceColor = mix(surfaceColor, cloudColor, cloudDensity * 0.88);
+
+      // --- NIGHT-SIDE WARM CITY LIGHTS ---
       float nightFactor = 1.0 - dayFactor;
-      float circuitGrid = 0.0;
-      if (elevation >= 0.04) {
-        // Antialiased subtle neural arteries
-        float net1 = smoothstep(0.72, 0.88, sin(vPosition.x * 20.0 + fbm3D(vPosition * 6.0, 3) * 4.0));
-        float net2 = smoothstep(0.72, 0.88, cos(vPosition.y * 20.0 + fbm3D(vPosition * 6.0, 3) * 4.0));
-        circuitGrid = max(net1, net2) * smoothstep(0.04, 0.25, elevation);
+      float cityNetwork = 0.0;
+      if (elevation >= 0.05 && elevation <= 0.28) {
+        float clusters = smoothstep(0.60, 0.84, snoise(vPosition * 16.0) * snoise(vPosition * 32.0));
+        cityNetwork = clusters * smoothstep(0.05, 0.12, elevation);
       }
-      vec3 bioluminescentGlow = vec3(0.02, 0.65, 0.55) * circuitGrid * 0.65 * nightFactor;
+      vec3 cityGlow = vec3(1.0, 0.82, 0.45) * cityNetwork * 1.6 * nightFactor * (1.0 - cloudDensity * 0.8);
 
-      // Twilight horizon warming (amber-gold at terminator)
-      vec3 twilightColor = vec3(0.96, 0.45, 0.15) * twilight * 0.45;
+      // Polar Auroral Ribbons
+      float auroraLat = smoothstep(0.74, 0.95, abs(vPosition.y));
+      float auroraWave = sin(vPosition.x * 12.0 + uTime * 1.4) * 0.5 + 0.5;
+      vec3 auroraGlow = vec3(0.12, 0.95, 0.52) * auroraLat * auroraWave * 0.55 * nightFactor;
 
-      // Final Lighting Combination
-      vec3 ambientCosmic = vec3(0.015, 0.025, 0.045);
-      vec3 finalColor = surfaceColor * (ambientCosmic + dayFactor * 1.1) + twilightColor;
-      finalColor += vec3(1.0, 0.95, 0.85) * specular;
-      finalColor += bioluminescentGlow;
+      // Twilight warming
+      vec3 twilightColor = vec3(0.96, 0.45, 0.12) * twilight * 0.40;
+
+      // Total diffuse composite
+      vec3 ambientCosmic = vec3(0.015, 0.022, 0.035);
+      vec3 finalColor = surfaceColor * (ambientCosmic + dayFactor * 1.12) + twilightColor;
+      finalColor += vec3(1.0, 0.96, 0.88) * specular * (1.0 - cloudDensity);
+      finalColor += cityGlow + auroraGlow;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -228,7 +299,7 @@ export const PythonPlanetShader = {
 };
 
 // ---------------------------------------------------------------------
-// 2. C# / .NET World: Banded Jovian Giant & Amber Vortex
+// 2. C# / .NET World: Zonal Jet Streams & Logarithmic Great Amber Vortex
 // ---------------------------------------------------------------------
 export const CSharpPlanetShader = {
   uniforms: {
@@ -237,63 +308,107 @@ export const CSharpPlanetShader = {
   },
   vertexShader: PLANET_VERTEX_SHADER,
   fragmentShader: /* glsl */ `
+    precision highp float;
     ${GLSL_COMMON_3D_NOISE}
 
     uniform float uTime;
     uniform vec3 uSunPosition;
 
     varying vec3 vPosition;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPosition;
-    varying vec3 vViewPosition;
+    varying vec3 vViewDir;
 
     void main() {
-      vec3 normal = normalize(vNormal);
+      vec3 normal = vWorldNormal;
+      vec3 viewDir = vViewDir;
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
 
+      // Physical day/night terminator in world space
       float NdotL = dot(normal, lightDir);
-      float dayFactor = smoothstep(-0.12, 0.28, NdotL);
-      float twilight = smoothstep(-0.25, 0.08, NdotL) * smoothstep(0.35, 0.0, NdotL);
+      float dayFactor = smoothstep(-0.10, 0.25, NdotL);
+      float twilight = smoothstep(-0.25, 0.06, NdotL) * (1.0 - smoothstep(0.0, 0.30, NdotL));
 
-      // Latitudinal shear flow (opposing jet streams)
+      // Zonal jet streams rotating in 3D Cartesian coordinates
       float lat = vPosition.y;
-      float shearSpeed = sin(lat * 16.0) * 0.06;
-      vec3 flowPos = vPosition;
-      flowPos.x += uTime * shearSpeed;
-      flowPos.z += uTime * shearSpeed * 0.5;
+      float drift = uTime * 0.035;
+      float ca = cos(drift);
+      float sa = sin(drift);
+      vec3 rotP = vec3(vPosition.x * ca - vPosition.z * sa, vPosition.y, vPosition.x * sa + vPosition.z * ca);
 
-      // Multi-octave domain warping for turbulent storm clouds
-      vec3 warpedPos = flowPos * 4.0;
-      float warp = fbm3D(warpedPos, 4);
-      float bands = fbm3D(warpedPos + warp * 0.65, 5);
+      // Latitudinal shear offsets (Bounded Kelvin-Helmholtz wave offsets)
+      float shearOffset = sin(lat * 8.0) * 0.35 + sin(lat * 16.0) * 0.12;
+      float ca2 = cos(shearOffset);
+      float sa2 = sin(shearOffset);
+      vec3 shearedPos = vec3(rotP.x * ca2 - rotP.z * sa2, rotP.y, rotP.x * sa2 + rotP.z * ca2);
 
-      // The Great Amber Vortex (Swirling Storm Eye at lat -0.32)
-      vec3 spotCenter = vec3(0.65, -0.32, 0.68);
-      float distToSpot = length(vPosition - spotCenter);
-      float vortexFactor = smoothstep(0.42, 0.05, distToSpot);
-      float vortexSwirl = sin(distToSpot * 24.0 - uTime * 2.2) * vortexFactor;
+      // Silk domain warping for smooth marble-like cloud eddies (Zero Moiré)
+      vec3 warp = vec3(
+        snoise(shearedPos * 1.5 + vec3(0.0, uTime * 0.025, 0.0)),
+        snoise(shearedPos * 1.5 + vec3(3.2, 0.0, uTime * 0.025)),
+        snoise(shearedPos * 1.5 + vec3(0.0, 6.7, uTime * 0.025))
+      );
+      vec3 warpedPos = shearedPos + warp * 0.15;
 
-      // Sci-Fi Jovian Color Palette
-      vec3 bandDeepUmber = vec3(0.24, 0.10, 0.03);
-      vec3 bandHoneyAmber = vec3(0.96, 0.62, 0.12);
-      vec3 bandCream = vec3(0.98, 0.88, 0.65);
-      vec3 bandBronze = vec3(0.52, 0.28, 0.08);
+      // Broad, silky Jovian latitudinal cloud bands (10-14 majestic belts and zones)
+      float latVal = warpedPos.y;
+      float primaryBands = sin(latVal * 9.0) * 0.45 + sin(latVal * 18.0 + warp.x * 0.5) * 0.20;
+      float billows = snoise(warpedPos * 1.5) * 0.12;
+      float bandVal = primaryBands + billows;
 
-      vec3 surfaceColor = mix(bandDeepUmber, bandBronze, smoothstep(-0.4, 0.1, bands));
-      surfaceColor = mix(surfaceColor, bandHoneyAmber, smoothstep(0.1, 0.55, bands));
-      surfaceColor = mix(surfaceColor, bandCream, smoothstep(0.55, 0.85, bands));
+      // The Great Amber Vortex (Anti-cyclonic storm at lat -0.32)
+      vec3 spotCenter = normalize(vec3(0.60, -0.32, 0.72));
+      float frontFacing = dot(vPosition, spotCenter);
+      float spotMask = 0.0;
+      float spiral = 0.0;
+      if (frontFacing > 0.65) {
+        vec3 spotUp = vec3(0.0, 1.0, 0.0);
+        vec3 spotT = normalize(cross(spotUp, spotCenter));
+        vec3 spotB = cross(spotCenter, spotT);
 
-      // Inject Great Amber Vortex
-      vec3 eyeColor = vec3(1.0, 0.35, 0.05) * 1.8;
-      surfaceColor = mix(surfaceColor, eyeColor, vortexFactor * 0.85 + vortexSwirl * 0.25);
+        vec3 toP = vPosition - spotCenter;
+        float spotX = dot(toP, spotT);
+        float spotY = dot(toP, spotB);
 
-      // Internal Core Radiance (Warm glow penetrating atmosphere)
-      vec3 coreRadiance = vec3(0.85, 0.35, 0.05) * 0.15;
+        float dElliptic = length(vec2(spotX * 0.85, spotY * 1.75));
+        spotMask = 1.0 - smoothstep(0.04, 0.22, dElliptic);
+
+        float spotAngle = atan(spotY, spotX);
+        spiral = sin(dElliptic * 24.0 - spotAngle * 2.0 - uTime * 1.2);
+      }
+
+      // Jovian Atmospheric Color Palette (Silky, broad color blends)
+      vec3 bandDeepUmber = vec3(0.28, 0.12, 0.04);
+      vec3 bandBronze = vec3(0.60, 0.30, 0.12);
+      vec3 bandHoneyAmber = vec3(0.88, 0.60, 0.24);
+      vec3 bandCream = vec3(0.95, 0.88, 0.74);
+      vec3 bandWhiteCirrus = vec3(0.98, 0.95, 0.90);
+
+      float tNorm = clamp(bandVal * 0.5 + 0.5, 0.0, 1.0);
+      vec3 beltColor = mix(bandDeepUmber, bandBronze, smoothstep(0.05, 0.35, tNorm));
+      beltColor = mix(beltColor, bandHoneyAmber, smoothstep(0.35, 0.60, tNorm));
+      beltColor = mix(beltColor, bandCream, smoothstep(0.60, 0.82, tNorm));
+      beltColor = mix(beltColor, bandWhiteCirrus, smoothstep(0.82, 0.98, tNorm));
+
+      // Polar hoods (hazy bluish-slate)
+      float polarHood = smoothstep(0.68, 0.92, abs(lat));
+      vec3 polarColor = vec3(0.34, 0.40, 0.48);
+      vec3 surfaceColor = mix(beltColor, polarColor, polarHood * 0.60);
+
+      // Great Amber Vortex
+      vec3 eyeColor = vec3(0.90, 0.35, 0.08);
+      vec3 eyeCirrus = vec3(0.98, 0.94, 0.86);
+      vec3 stormMix = mix(eyeColor, eyeCirrus, smoothstep(0.1, 0.7, spiral));
+      surfaceColor = mix(surfaceColor, stormMix, spotMask * 0.90);
+
+      // Volumetric limb darkening
+      float mu = clamp(dot(normal, viewDir), 0.0, 1.0);
+      float gasLimb = 0.58 + 0.42 * pow(mu, 0.75);
 
       // Final Lighting
-      vec3 ambient = vec3(0.02, 0.015, 0.01);
-      vec3 twilightColor = vec3(1.0, 0.38, 0.08) * twilight * 0.5;
-      vec3 finalColor = surfaceColor * (ambient + dayFactor * 1.15) + coreRadiance + twilightColor;
+      vec3 ambient = vec3(0.015, 0.012, 0.010);
+      vec3 twilightColor = vec3(0.95, 0.45, 0.10) * twilight * 0.48;
+      vec3 finalColor = surfaceColor * gasLimb * (ambient + dayFactor * 1.15) + twilightColor;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -301,7 +416,7 @@ export const CSharpPlanetShader = {
 };
 
 // ---------------------------------------------------------------------
-// 3. Rust World: Scorched Terracotta & Chasm Rifts
+// 3. Rust World: Valles Marineris Tectonic Chasms & Polar Ice Caps
 // ---------------------------------------------------------------------
 export const RustPlanetShader = {
   uniforms: {
@@ -310,51 +425,106 @@ export const RustPlanetShader = {
   },
   vertexShader: PLANET_VERTEX_SHADER,
   fragmentShader: /* glsl */ `
+    precision highp float;
     ${GLSL_COMMON_3D_NOISE}
 
     uniform float uTime;
     uniform vec3 uSunPosition;
 
     varying vec3 vPosition;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPosition;
-    varying vec3 vViewPosition;
+    varying vec3 vViewDir;
+
+    float rustElevation(vec3 p) {
+      float base = fbm3D(p * 2.8, 4);
+      
+      // Impact Craters with raised rims
+      vec2 v = voronoi3D(p * 4.8);
+      float craterRim = smoothstep(0.04, 0.12, v.x) * (1.0 - smoothstep(0.12, 0.24, v.x)) * 0.28;
+      float craterPit = -(1.0 - smoothstep(0.02, 0.12, v.x)) * 0.20;
+
+      // Valles Marineris Tectonic Rift Chasms
+      float chasmNoise = abs(snoise(p * 2.2 + vec3(1.2, 0.5, 0.8)));
+      float chasm = (1.0 - smoothstep(0.0, 0.16, chasmNoise));
+      chasm = pow(chasm, 2.4) * 0.48;
+
+      return base + craterRim + craterPit - chasm;
+    }
+
+    vec3 calculateRustNormal(vec3 p, vec3 geomWorldNormal, vec3 viewDir, out float outElevation) {
+      vec3 up = abs(geomWorldNormal.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+      vec3 T = normalize(cross(up, geomWorldNormal));
+      vec3 B = cross(geomWorldNormal, T);
+
+      vec3 localUp = abs(p.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+      vec3 localT = normalize(cross(localUp, p));
+      vec3 localB = cross(p, localT);
+
+      float pixelWidth = length(fwidth(p));
+      float eps = max(0.012, pixelWidth * 1.6);
+
+      float h0 = rustElevation(p);
+      float hT = rustElevation(normalize(p + localT * eps));
+      float hB = rustElevation(normalize(p + localB * eps));
+      outElevation = h0;
+
+      float dHdT = clamp((hT - h0) / eps, -1.6, 1.6);
+      float dHdB = clamp((hB - h0) / eps, -1.6, 1.6);
+
+      vec3 perturbed = normalize(geomWorldNormal - (T * dHdT + B * dHdB) * 0.16);
+
+      float limbFactor = clamp(dot(geomWorldNormal, viewDir), 0.0, 1.0);
+      float normalWeight = smoothstep(0.04, 0.30, limbFactor);
+      return normalize(mix(geomWorldNormal, perturbed, normalWeight));
+    }
 
     void main() {
-      vec3 normal = normalize(vNormal);
+      vec3 geomNormal = vWorldNormal;
+      vec3 viewDir = vViewDir;
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
 
+      float elevation = 0.0;
+      vec3 normal = calculateRustNormal(vPosition, geomNormal, viewDir, elevation);
+
       float NdotL = dot(normal, lightDir);
-      float dayFactor = smoothstep(-0.1, 0.22, NdotL);
-      float twilight = smoothstep(-0.25, 0.05, NdotL) * smoothstep(0.3, 0.0, NdotL);
+      float dayFactor = smoothstep(-0.08, 0.22, NdotL);
+      float twilight = smoothstep(-0.25, 0.05, NdotL) * (1.0 - smoothstep(0.0, 0.30, NdotL));
 
-      // Inverted Ridge FBM for Sharp Tectonic Canyons & Craters
-      vec3 p = vPosition * 4.5;
-      float baseNoise = fbm3D(p, 5);
-      float ridge = 1.0 - abs(snoise(p * 2.2));
-      ridge = pow(ridge, 3.2); // Knife-edge chasms
+      // Color Palette: Oxidized hematite red, desert terracotta, basalt basin
+      vec3 ironRed = vec3(0.70, 0.26, 0.10);
+      vec3 desertTerracotta = vec3(0.86, 0.48, 0.20);
+      vec3 basaltBasin = vec3(0.20, 0.14, 0.11);
+      vec3 copperVerdigris = vec3(0.22, 0.52, 0.45);
 
-      // Color Palette: Iron-oxide red, copper dust, scorched basalt
-      vec3 ironRed = vec3(0.68, 0.22, 0.08);
-      vec3 desertTerracotta = vec3(0.88, 0.44, 0.18);
-      vec3 chasmBlack = vec3(0.12, 0.08, 0.06);
-      vec3 copperVerdigris = vec3(0.15, 0.52, 0.48); // Subtle copper veins
+      vec3 surfaceColor = mix(ironRed, desertTerracotta, smoothstep(-0.20, 0.35, elevation));
+      surfaceColor = mix(basaltBasin, surfaceColor, smoothstep(-0.45, -0.05, elevation));
 
-      vec3 surfaceColor = mix(ironRed, desertTerracotta, smoothstep(-0.3, 0.4, baseNoise));
-      surfaceColor = mix(surfaceColor, chasmBlack, ridge * 0.85);
+      // Stratified canyon walls with geological strata
+      if (elevation < -0.08) {
+        float strata = sin(vPosition.y * 45.0 + snoise(vPosition * 8.0) * 1.5) * 0.5 + 0.5;
+        surfaceColor = mix(surfaceColor, desertTerracotta * 0.72, strata * 0.45);
+      }
 
-      // Verdigris mineral deposits along canyon edges
-      float mineralEdge = smoothstep(0.4, 0.6, ridge) * smoothstep(0.8, 0.6, ridge);
-      surfaceColor = mix(surfaceColor, copperVerdigris, mineralEdge * 0.45);
+      // Verdigris mineral seams
+      float mineralEdge = smoothstep(-0.15, 0.05, elevation) * (1.0 - smoothstep(0.05, 0.20, elevation));
+      surfaceColor = mix(surfaceColor, copperVerdigris, mineralEdge * 0.30);
 
-      // Dust storms (drifting iron-sand haze)
-      float dustHaze = smoothstep(0.35, 0.75, fbm3D(vPosition * 6.0 + vec3(uTime * 0.015), 3));
-      surfaceColor = mix(surfaceColor, desertTerracotta * 1.15, dustHaze * 0.35);
+      // --- POLAR ICE CAPS (Dry-ice CO2 & Water Frost) ---
+      float polarLat = smoothstep(0.76, 0.94, abs(vPosition.y));
+      float polarSpiral = sin(atan(vPosition.z, vPosition.x) * 4.0 + fbm3D(vPosition * 8.0, 3) * 3.0);
+      vec3 polarFrost = vec3(0.94, 0.97, 1.0);
+      surfaceColor = mix(surfaceColor, polarFrost, polarLat * (0.80 + 0.20 * polarSpiral));
 
-      // Final Lighting
-      vec3 ambient = vec3(0.015, 0.01, 0.01);
-      vec3 twilightColor = vec3(0.95, 0.25, 0.08) * twilight * 0.4;
-      vec3 finalColor = surfaceColor * (ambient + dayFactor * 1.08) + twilightColor;
+      // Drifting iron dust storms
+      float dustHaze = smoothstep(0.35, 0.75, fbm3D(vPosition * 5.5 + vec3(uTime * 0.015), 3));
+      surfaceColor = mix(surfaceColor, desertTerracotta * 1.10, dustHaze * 0.25);
+
+      // Martian Blue Sunset: Forward dust scattering creates cool blue twilight
+      vec3 blueSunset = vec3(0.20, 0.52, 0.88) * twilight * 0.65;
+
+      vec3 ambient = vec3(0.015, 0.012, 0.015);
+      vec3 finalColor = surfaceColor * (ambient + dayFactor * 1.10) + blueSunset;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -362,74 +532,79 @@ export const RustPlanetShader = {
 };
 
 // ---------------------------------------------------------------------
-// 4. TypeScript World: Cryogenic Ice World & Ring Shadow Receiving
+// 4. TypeScript World: Glacial Cyan Striations & Ring Shadow Receiving
 // ---------------------------------------------------------------------
 export const TypeScriptPlanetShader = {
   uniforms: {
     uTime: { value: 0 },
     uSunPosition: { value: new THREE.Vector3(0, 0, 0) },
+    uPlanetPosition: { value: new THREE.Vector3(0, 0, 0) },
     uRingInnerRadius: { value: 20.0 * 1.45 },
     uRingOuterRadius: { value: 20.0 * 2.5 }
   },
   vertexShader: PLANET_VERTEX_SHADER,
   fragmentShader: /* glsl */ `
+    precision highp float;
     ${GLSL_COMMON_3D_NOISE}
 
     uniform float uTime;
     uniform vec3 uSunPosition;
+    uniform vec3 uPlanetPosition;
     uniform float uRingInnerRadius;
     uniform float uRingOuterRadius;
 
     varying vec3 vPosition;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPosition;
-    varying vec3 vViewPosition;
+    varying vec3 vViewDir;
 
     void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 viewDir = normalize(vViewPosition);
+      vec3 normal = vWorldNormal;
+      vec3 viewDir = vViewDir;
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
 
       float NdotL = dot(normal, lightDir);
-      float dayFactor = smoothstep(-0.1, 0.22, NdotL);
-      float twilight = smoothstep(-0.25, 0.05, NdotL) * smoothstep(0.3, 0.0, NdotL);
+      float dayFactor = smoothstep(-0.08, 0.22, NdotL);
+      float twilight = smoothstep(-0.25, 0.05, NdotL) * (1.0 - smoothstep(0.0, 0.30, NdotL));
 
-      // Glacial Voronoi Crystalline Crust
-      vec3 p = vPosition * 5.2;
-      float cellDist = voronoi3D(p);
-      float iceNoise = fbm3D(p, 4);
+      // Glacial pressure ridges & cryo-ocean flow
+      float iceFlow = fbm3D(vPosition * 3.4 + snoise(vPosition * 2.2) * 0.35, 4);
+      float striations = sin(vPosition.y * 24.0 + iceFlow * 4.0) * 0.5 + 0.5;
 
-      // Pale Cerulean & Deep Cryogenic Cobalt
-      vec3 deepCobalt = vec3(0.04, 0.22, 0.52);
-      vec3 glacialCyan = vec3(0.25, 0.75, 0.98);
-      vec3 frostWhite = vec3(0.92, 0.98, 1.0);
+      vec3 deepCobalt = vec3(0.05, 0.20, 0.46);
+      vec3 glacialCyan = vec3(0.20, 0.68, 0.88);
+      vec3 frostWhite = vec3(0.92, 0.97, 1.0);
 
-      vec3 surfaceColor = mix(deepCobalt, glacialCyan, smoothstep(0.1, 0.55, cellDist));
-      surfaceColor = mix(surfaceColor, frostWhite, smoothstep(0.3, 0.75, iceNoise));
+      vec3 surfaceColor = mix(deepCobalt, glacialCyan, smoothstep(-0.25, 0.30, iceFlow));
+      surfaceColor = mix(surfaceColor, frostWhite, smoothstep(0.30, 0.78, iceFlow + striations * 0.25));
 
-      // Specular Ice Glint
+      // Specular Ice Glint (Softer, realistic)
       vec3 halfVec = normalize(lightDir + viewDir);
-      float spec = pow(max(dot(normal, halfVec), 0.0), 36.0) * 1.4 * dayFactor;
+      float spec = pow(max(dot(normal, halfVec), 0.0), 54.0) * 0.85 * dayFactor;
 
-      // Analytical Ring Shadow on Planet:
-      // Check if light ray from sun passes through the ring's equatorial plane (Y = 0)
+      // Analytical Ring Shadow on Planet Surface (World space ray-plane intersection):
       float ringShadow = 1.0;
-      if (lightDir.y != 0.0) {
-        float t = -vWorldPosition.y / lightDir.y;
+      vec3 ringNormal = vec3(-0.218, 0.976, 0.0);
+      float denom = dot(lightDir, ringNormal);
+      if (abs(denom) > 0.001) {
+        float t = dot(uPlanetPosition - vWorldPosition, ringNormal) / denom;
         if (t > 0.0) {
           vec3 hitPoint = vWorldPosition + lightDir * t;
-          float hitDist = length(hitPoint.xz);
+          float hitDist = length(hitPoint - uPlanetPosition);
           if (hitDist >= uRingInnerRadius && hitDist <= uRingOuterRadius) {
-            ringShadow = 0.28; // Deep shadow cast by rings onto planet
+            float normR = (hitDist - uRingInnerRadius) / (uRingOuterRadius - uRingInnerRadius);
+            float cassini = smoothstep(0.015, 0.040, abs(normR - 0.64));
+            float ringEdge = smoothstep(uRingInnerRadius, uRingInnerRadius * 1.03, hitDist)
+                           * (1.0 - smoothstep(uRingOuterRadius * 0.97, uRingOuterRadius, hitDist));
+            ringShadow = mix(1.0, 0.22 + 0.45 * (1.0 - cassini), ringEdge);
           }
         }
       }
 
-      // Final Lighting
-      vec3 ambient = vec3(0.015, 0.03, 0.06);
+      vec3 ambient = vec3(0.015, 0.030, 0.055);
       vec3 twilightColor = vec3(0.35, 0.82, 1.0) * twilight * 0.45;
       vec3 finalColor = surfaceColor * (ambient + dayFactor * 1.12 * ringShadow) + twilightColor;
-      finalColor += vec3(0.7, 0.92, 1.0) * spec * ringShadow;
+      finalColor += vec3(0.75, 0.94, 1.0) * spec * ringShadow;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }
@@ -437,7 +612,7 @@ export const TypeScriptPlanetShader = {
 };
 
 // ---------------------------------------------------------------------
-// 5. C++ World: Obsidian Basalt & Convective Breathing Magma
+// 5. C++ World: Convective Molten Magma & Drifting Obsidian Basalt Plates
 // ---------------------------------------------------------------------
 export const CppPlanetShader = {
   uniforms: {
@@ -446,48 +621,58 @@ export const CppPlanetShader = {
   },
   vertexShader: PLANET_VERTEX_SHADER,
   fragmentShader: /* glsl */ `
+    precision highp float;
     ${GLSL_COMMON_3D_NOISE}
 
     uniform float uTime;
     uniform vec3 uSunPosition;
 
     varying vec3 vPosition;
-    varying vec3 vNormal;
+    varying vec3 vWorldNormal;
     varying vec3 vWorldPosition;
-    varying vec3 vViewPosition;
+    varying vec3 vViewDir;
 
     void main() {
-      vec3 normal = normalize(vNormal);
+      vec3 normal = vWorldNormal;
+      vec3 viewDir = vViewDir;
       vec3 lightDir = normalize(uSunPosition - vWorldPosition);
 
       float NdotL = dot(normal, lightDir);
-      float dayFactor = smoothstep(-0.15, 0.25, NdotL);
+      float dayFactor = smoothstep(-0.10, 0.25, NdotL);
 
-      // Voronoi Tectonic Plates
-      vec3 p = vPosition * 4.2;
-      float vDist = voronoi3D(p);
+      // Cracked obsidian crust using Voronoi edge distance (d2 - d1)
+      vec3 p = vPosition * 4.2 + snoise(vPosition * 8.0) * 0.25;
+      vec2 v = voronoi3D(p);
+      float edgeDist = v.y - v.x; // Exact distance to plate boundary
 
-      // Fissure distance: sharp boundaries between tectonic plates
-      float fissure = smoothstep(0.16, 0.02, vDist);
+      // Jagged magma fissures between basalt plates
+      float fissure = 1.0 - smoothstep(0.015, 0.09, edgeDist);
+      float coreLava = 1.0 - smoothstep(0.005, 0.035, edgeDist);
 
       // Obsidian Basalt Crust
-      vec3 basaltCharcoal = vec3(0.08, 0.09, 0.11);
-      vec3 basaltPlate = vec3(0.14, 0.15, 0.18);
-      vec3 crustColor = mix(basaltCharcoal, basaltPlate, smoothstep(0.2, 0.6, vDist));
+      vec3 basaltCharcoal = vec3(0.08, 0.08, 0.09);
+      vec3 basaltSlate = vec3(0.16, 0.16, 0.17);
+      vec3 crustColor = mix(basaltCharcoal, basaltSlate, smoothstep(0.1, 0.45, edgeDist));
 
-      // Convective Breathing Magma Pulse
-      float pulse = 0.85 + 0.35 * sin(uTime * 2.8 + snoise(vPosition * 8.0) * 3.14);
-      vec3 magmaYellow = vec3(1.0, 0.95, 0.45);
-      vec3 magmaOrange = vec3(1.0, 0.35, 0.02);
-      vec3 magmaVermilion = vec3(0.85, 0.08, 0.02);
+      // Thermal underglow in crust near fissures
+      float thermalGlow = 1.0 - smoothstep(0.07, 0.20, edgeDist);
+      crustColor += vec3(0.55, 0.10, 0.01) * thermalGlow * 0.45;
 
-      vec3 moltenColor = mix(magmaVermilion, magmaOrange, smoothstep(0.0, 0.5, fissure));
-      moltenColor = mix(moltenColor, magmaYellow, smoothstep(0.5, 1.0, fissure));
-      moltenColor *= (2.4 * pulse); // Intense emissive output for Bloom pass
+      // Convective Breathing Magma Pulse & Boiling Lava Veins
+      float boiling = snoise(vPosition * 16.0 + vec3(0.0, uTime * 0.9, 0.0)) * 0.5 + 0.5;
+      float pulse = 0.92 + 0.18 * sin(uTime * 3.2 + snoise(vPosition * 5.0) * 3.14);
 
-      // Magma glows on BOTH day and night hemispheres (internal thermal heat)
+      vec3 magmaYellow = vec3(1.0, 0.98, 0.70) * 2.8;
+      vec3 magmaOrange = vec3(1.0, 0.45, 0.04) * 2.2;
+      vec3 magmaVermilion = vec3(0.82, 0.12, 0.02) * 1.6;
+
+      vec3 moltenColor = mix(magmaVermilion, magmaOrange, fissure);
+      moltenColor = mix(moltenColor, magmaYellow, coreLava);
+      moltenColor *= (pulse * (0.85 + 0.30 * boiling));
+
+      // Magma glows on BOTH day and night hemispheres (internal core heat)
       vec3 ambient = vec3(0.015, 0.015, 0.02);
-      vec3 finalColor = crustColor * (ambient + dayFactor * 0.95) + moltenColor * fissure;
+      vec3 finalColor = crustColor * (ambient + dayFactor * 1.05) + moltenColor * fissure;
 
       gl_FragColor = vec4(finalColor, 1.0);
     }

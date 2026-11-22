@@ -1,22 +1,20 @@
 /**
- * Sun.js — Central Star with Convective Shader, Physical Light & Corona
+ * Sun.js — Solar Component with Photorealistic Granulation & Calibrated Corona
  */
 
 import * as THREE from 'three';
 import { SunShader } from '../shaders/sunShader.js';
 
-export function createSun(radius = 24) {
+export function createSun(radius = 36) {
   const group = new THREE.Group();
-  group.name = 'Sun';
 
-  // 1. Physically Motivated Central PointLight
-  // Soft falloff across the entire solar system
-  const sunLight = new THREE.PointLight(0xfffaed, 2.8, 1800, 1.2);
+  // 1. Central Point Light for planetary illumination
+  const sunLight = new THREE.PointLight(0xfffaed, 2.8, 0, 0);
   sunLight.position.set(0, 0, 0);
   group.add(sunLight);
 
-  // 2. Convective Granulation Photosphere Sphere
-  const geometry = new THREE.SphereGeometry(radius, 64, 48);
+  // 2. Photosphere Mesh with Procedural Convective Granulation & Sunspots
+  const geometry = new THREE.SphereGeometry(radius, 64, 64);
   const material = new THREE.ShaderMaterial({
     uniforms: THREE.UniformsUtils.clone(SunShader.uniforms),
     vertexShader: SunShader.vertexShader,
@@ -26,28 +24,50 @@ export function createSun(radius = 24) {
   const photosphere = new THREE.Mesh(geometry, material);
   group.add(photosphere);
 
-  // 3. Multi-Layer Additive Corona Billboards
+  // 3. Multi-Stage Solar Corona (Inner K-Corona & Outer Magnetic Streamers)
+  // Photosphere limb is at radius / (radius * 2.6) ~= 0.385 of the corona canvas
   const coronaCanvas = document.createElement('canvas');
   coronaCanvas.width = 512;
   coronaCanvas.height = 512;
   const cCtx = coronaCanvas.getContext('2d');
   
   const radGrad = cCtx.createRadialGradient(256, 256, 0, 256, 256, 256);
-  radGrad.addColorStop(0, 'rgba(255, 250, 230, 0.95)');
-  radGrad.addColorStop(0.18, 'rgba(245, 158, 11, 0.7)');
-  radGrad.addColorStop(0.45, 'rgba(217, 119, 6, 0.28)');
-  radGrad.addColorStop(0.75, 'rgba(180, 83, 9, 0.08)');
+  // Center is subtle so photosphere surface detail remains visible
+  radGrad.addColorStop(0, 'rgba(255, 235, 180, 0.05)');
+  radGrad.addColorStop(0.32, 'rgba(255, 215, 120, 0.12)');
+  radGrad.addColorStop(0.385, 'rgba(255, 195, 60, 0.55)'); // Bright chromospheric limb ring
+  radGrad.addColorStop(0.55, 'rgba(245, 140, 15, 0.22)');
+  radGrad.addColorStop(0.78, 'rgba(180, 75, 5, 0.06)');
   radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
   cCtx.fillStyle = radGrad;
   cCtx.fillRect(0, 0, 512, 512);
+
+  // Paint magnetic filamentary rays radiating outwards beyond the limb
+  cCtx.save();
+  cCtx.translate(256, 256);
+  for (let i = 0; i < 32; i++) {
+    const angle = (i / 32) * Math.PI * 2;
+    const len = 135 + Math.sin(i * 3.7) * 75;
+    const rayGrad = cCtx.createLinearGradient(0, 0, Math.cos(angle) * len, Math.sin(angle) * len);
+    rayGrad.addColorStop(0, 'rgba(255, 210, 100, 0.14)');
+    rayGrad.addColorStop(0.4, 'rgba(255, 160, 30, 0.10)');
+    rayGrad.addColorStop(1, 'rgba(255, 90, 10, 0)');
+    cCtx.strokeStyle = rayGrad;
+    cCtx.lineWidth = 2 + (i % 3);
+    cCtx.beginPath();
+    cCtx.moveTo(Math.cos(angle) * 98, Math.sin(angle) * 98); // Start at solar limb
+    cCtx.lineTo(Math.cos(angle) * (98 + len), Math.sin(angle) * (98 + len));
+    cCtx.stroke();
+  }
+  cCtx.restore();
 
   const coronaTexture = new THREE.CanvasTexture(coronaCanvas);
   const coronaMat = new THREE.SpriteMaterial({
     map: coronaTexture,
     blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 0.50,
+    opacity: 0.45,
     depthWrite: false
   });
 
@@ -61,9 +81,9 @@ export function createSun(radius = 24) {
   streakCanvas.height = 128;
   const sCtx = streakCanvas.getContext('2d');
   const streakGrad = sCtx.createRadialGradient(256, 64, 0, 256, 64, 256);
-  streakGrad.addColorStop(0, 'rgba(255, 240, 200, 0.45)');
-  streakGrad.addColorStop(0.2, 'rgba(245, 158, 11, 0.22)');
-  streakGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0)');
+  streakGrad.addColorStop(0, 'rgba(255, 235, 190, 0.28)');
+  streakGrad.addColorStop(0.20, 'rgba(245, 150, 15, 0.15)');
+  streakGrad.addColorStop(0.75, 'rgba(0, 0, 0, 0)');
   sCtx.fillStyle = streakGrad;
   sCtx.fillRect(0, 0, 512, 128);
 
@@ -72,11 +92,11 @@ export function createSun(radius = 24) {
     map: streakTexture,
     blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 0.35,
+    opacity: 0.28,
     depthWrite: false
   });
   const streakSprite = new THREE.Sprite(streakMat);
-  streakSprite.scale.set(radius * 6.5, radius * 1.4, 1);
+  streakSprite.scale.set(radius * 5.8, radius * 1.2, 1);
   group.add(streakSprite);
 
   return {
@@ -85,11 +105,21 @@ export function createSun(radius = 24) {
     mesh: photosphere,
     coronaSprite,
     streakSprite,
-    update(time, camera) {
-      material.uniforms.uTime.value = time;
-      // Gentle breathing pulse
-      const pulse = 1.0 + Math.sin(time * 1.4) * 0.035;
-      coronaSprite.scale.set(radius * 2.6 * pulse, radius * 2.6 * pulse, 1);
+    update(time, camera, hasFocusedTarget = false) {
+      const timeSec = time * 0.001;
+      material.uniforms.uTime.value = timeSec;
+
+      // Proximity exposure governor:
+      // When user is inspecting a planet/moon, shrink corona so it never blinds the view
+      const targetScaleMult = hasFocusedTarget ? 1.5 : 2.6;
+      const targetOpacity = hasFocusedTarget ? 0.12 : 0.45;
+
+      const pulse = 1.0 + Math.sin(timeSec * 1.4) * 0.03;
+      const curScale = radius * targetScaleMult * pulse;
+
+      coronaSprite.scale.set(curScale, curScale, 1);
+      coronaMat.opacity = THREE.MathUtils.lerp(coronaMat.opacity, targetOpacity, 0.08);
+      streakMat.opacity = THREE.MathUtils.lerp(streakMat.opacity, hasFocusedTarget ? 0.06 : 0.28, 0.08);
     }
   };
 }

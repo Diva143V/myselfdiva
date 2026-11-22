@@ -348,15 +348,19 @@ export class UniverseScene {
    */
   calculateComposedFraming(targetObj, cameraFraming) {
     const bodyPos = targetObj.getPosition();
-    const elevDeg = cameraFraming?.elevationDeg || 30;
+    const isMoon = !!(targetObj.mesh?.userData?.isMoon || targetObj.config?.parentPlanetId);
+    const targetRadius = targetObj.config?.radius || 12;
+    const elevDeg = cameraFraming?.elevationDeg || (isMoon ? 28 : 22);
     const elevRad = (elevDeg * Math.PI) / 180;
-    const dist = cameraFraming?.distance || 38;
+    const dist = cameraFraming?.distance || (isMoon ? 18 : targetRadius * 3.2);
 
     const isDesktop = this.width >= 768;
 
     // Angle relative to central star
     const bodyAngle = Math.atan2(bodyPos.z, bodyPos.x);
-    const camAngle = bodyAngle + 0.45; // 3/4 vantage showing illuminated limb
+    // For planets: vantage from the sunward side (bodyAngle + PI - 0.55) shows 75% sunlit face with terminator
+    // For moons: 3/4 vantage showing host planetshine
+    const camAngle = isMoon ? (bodyAngle + 0.45) : (bodyAngle + Math.PI - 0.55);
 
     const camX = bodyPos.x + Math.cos(camAngle) * dist * Math.cos(elevRad);
     const camY = bodyPos.y + dist * Math.sin(elevRad);
@@ -480,8 +484,8 @@ export class UniverseScene {
   }
 
   update(dt, time) {
-    // 1. Central Sun Convection & Pulse
-    this.sun.update(time, this.camera);
+    // 1. Central Sun Convection & Pulse (with adaptive proximity exposure)
+    this.sun.update(time, this.camera, !!this.focusedTarget);
 
     // 2. Starfield Subtle Twinkle
     this.starfield.update(time);
