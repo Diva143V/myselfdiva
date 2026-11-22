@@ -40,12 +40,12 @@ export function createMoon(config, parentPlanet) {
   facetedGeo.computeVertexNormals();
 
   const material = new THREE.MeshStandardMaterial({
-    color: config.isMajor ? 0xe2e8f0 : 0x94a3b8,
-    roughness: 0.35, // Polished crystalline facet reflections
+    color: config.isMajor ? 0xf8fafc : 0xcbd5e1,
+    roughness: 0.32,
     metalness: 0.65,
     flatShading: true,
     emissive: new THREE.Color(beaconHex),
-    emissiveIntensity: 0
+    emissiveIntensity: config.isMajor ? 0.55 : 0.35 // Active crystalline glow
   });
 
   const mesh = new THREE.Mesh(facetedGeo, material);
@@ -59,7 +59,7 @@ export function createMoon(config, parentPlanet) {
   group.add(mesh);
 
   // 2. Central Glowing Core Beacon
-  const beaconGeo = new THREE.SphereGeometry(radius * 0.42, 16, 16);
+  const beaconGeo = new THREE.SphereGeometry(radius * 0.52, 16, 16);
   const beaconMat = new THREE.MeshBasicMaterial({
     color: beaconHex,
     transparent: true,
@@ -68,16 +68,31 @@ export function createMoon(config, parentPlanet) {
   const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
   group.add(beaconMesh);
 
-  // Subtle Outer Core Glow Halo
-  const haloGeo = new THREE.SphereGeometry(radius * 0.72, 16, 16);
-  const haloMat = new THREE.MeshBasicMaterial({
+  // Subtle Outer Core Glow Halo Sprite (Camera-facing billboard for distance visibility)
+  const haloCanvas = document.createElement('canvas');
+  haloCanvas.width = 128;
+  haloCanvas.height = 128;
+  const hCtx = haloCanvas.getContext('2d');
+  const hGrad = hCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  hGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  hGrad.addColorStop(0.22, 'rgba(255, 255, 255, 0.65)');
+  hGrad.addColorStop(0.55, 'rgba(255, 255, 255, 0.18)');
+  hGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  hCtx.fillStyle = hGrad;
+  hCtx.fillRect(0, 0, 128, 128);
+  const haloTexture = new THREE.CanvasTexture(haloCanvas);
+
+  const haloMat = new THREE.SpriteMaterial({
+    map: haloTexture,
     color: beaconHex,
+    blending: THREE.AdditiveBlending,
     transparent: true,
-    opacity: 0.28,
-    blending: THREE.AdditiveBlending
+    opacity: config.isMajor ? 0.80 : 0.50,
+    depthWrite: false
   });
-  const haloMesh = new THREE.Mesh(haloGeo, haloMat);
-  group.add(haloMesh);
+  const haloSprite = new THREE.Sprite(haloMat);
+  haloSprite.scale.set(radius * 3.6, radius * 3.6, 1);
+  group.add(haloSprite);
 
   // 3. Luminous Fading Orbit Ribbon around parent planet
   const trailSegments = 84;
@@ -106,7 +121,7 @@ export function createMoon(config, parentPlanet) {
   const trailMat = new THREE.LineBasicMaterial({
     vertexColors: true,
     transparent: true,
-    opacity: config.isMajor ? 0.45 : 0.18,
+    opacity: config.isMajor ? 0.55 : 0.25,
     depthWrite: false
   });
   const trailLine = new THREE.Line(trailGeo, trailMat);
@@ -120,15 +135,15 @@ export function createMoon(config, parentPlanet) {
     mesh,
     material,
     beaconMesh,
-    haloMesh,
+    haloSprite,
     trailLine,
     config,
     parentPlanet,
     highlight(active) {
-      trailMat.opacity = active ? 0.95 : (config.isMajor ? 0.45 : 0.18);
-      material.color.set(active ? 0xffffff : (config.isMajor ? 0xe2e8f0 : 0x94a3b8));
+      trailMat.opacity = active ? 0.95 : (config.isMajor ? 0.55 : 0.25);
+      material.color.set(active ? 0xffffff : (config.isMajor ? 0xf8fafc : 0xcbd5e1));
       beaconMat.opacity = active ? 1.0 : 0.95;
-      haloMesh.scale.setScalar(active ? 1.6 : 1.0);
+      haloSprite.scale.set(radius * (active ? 5.0 : 3.6), radius * (active ? 5.0 : 3.6), 1);
     },
     update(dt, time = 0) {
       currentAngle += orbitSpeed * dt;
@@ -138,24 +153,21 @@ export function createMoon(config, parentPlanet) {
       mesh.rotation.x = Math.sin(time * 0.5) * 0.15;
 
       // Beacon breathing pulse
-      const pulse = 1.0 + Math.sin(time * 3.5 + config.orbitRadius) * 0.22;
+      const pulse = 1.0 + Math.sin(time * 3.5 + config.orbitRadius) * 0.18;
       beaconMesh.scale.setScalar(pulse);
-      haloMesh.scale.setScalar(pulse * 1.15);
+      haloSprite.scale.set(radius * 3.6 * pulse, radius * 3.6 * pulse, 1);
 
       // Local coordinate relative to parent planet
       const localX = Math.cos(currentAngle) * orbitRadius;
       const localY = Math.sin(currentAngle) * orbitRadius * (config.inclination || 0.1);
       const localZ = Math.sin(currentAngle) * orbitRadius;
 
-      const parentPos = parentPlanet.getPosition();
-      group.position.set(
-        parentPos.x + localX,
-        parentPos.y + localY,
-        parentPos.z + localZ
-      );
+      group.position.set(localX, localY, localZ);
     },
     getPosition() {
-      return group.position;
+      const worldPos = new THREE.Vector3();
+      group.getWorldPosition(worldPos);
+      return worldPos;
     }
   };
 }

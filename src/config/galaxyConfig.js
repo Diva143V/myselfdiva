@@ -72,10 +72,10 @@ export const GALAXY_CONFIG = {
       orbitIndex: 1,
       radius: 9.5,
       orbitRadius: 95,
-      orbitSpeed: 0.0035,
+      orbitSpeed: 0.224, // ~28s orbital period
       initialAngle: 0.6,
       inclination: 0.04,
-      rotationSpeed: 0.004,
+      rotationSpeed: 0.015,
       color: 0x00e599,
       priority: 80,
       classification: 'Primary Language · Biomedical AI',
@@ -94,10 +94,10 @@ export const GALAXY_CONFIG = {
       orbitIndex: 2,
       radius: 10.5,
       orbitRadius: 175,
-      orbitSpeed: 0.0022,
+      orbitSpeed: 0.165, // ~38s orbital period
       initialAngle: 2.4,
       inclination: -0.06,
-      rotationSpeed: 0.003,
+      rotationSpeed: 0.012,
       color: 0xa855f7,
       priority: 80,
       classification: 'Primary Language · Desktop Systems',
@@ -116,10 +116,10 @@ export const GALAXY_CONFIG = {
       orbitIndex: 3,
       radius: 9.0,
       orbitRadius: 260,
-      orbitSpeed: 0.0016,
+      orbitSpeed: 0.125, // ~50s orbital period
       initialAngle: 4.2,
       inclination: 0.08,
-      rotationSpeed: 0.005,
+      rotationSpeed: 0.014,
       color: 0xf97316,
       priority: 80,
       classification: 'Primary Language · Systems & MCP',
@@ -138,10 +138,10 @@ export const GALAXY_CONFIG = {
       orbitIndex: 4,
       radius: 8.0,
       orbitRadius: 345,
-      orbitSpeed: 0.0011,
+      orbitSpeed: 0.098, // ~64s orbital period
       initialAngle: 5.5,
       inclination: -0.05,
-      rotationSpeed: 0.004,
+      rotationSpeed: 0.012,
       hasRings: true,
       color: 0x00f0ff,
       priority: 80,
@@ -161,10 +161,10 @@ export const GALAXY_CONFIG = {
       orbitIndex: 5,
       radius: 8.5,
       orbitRadius: 435,
-      orbitSpeed: 0.0009,
+      orbitSpeed: 0.080, // ~78s orbital period
       initialAngle: 1.5,
       inclination: 0.07,
-      rotationSpeed: 0.003,
+      rotationSpeed: 0.010,
       color: 0xef4444,
       priority: 80,
       classification: 'Primary Language · Algorithms & Performance',
@@ -188,9 +188,9 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '01',
       status: 'Shipped',
-      radius: 2.2,
-      orbitRadius: 24,
-      orbitSpeed: 0.011,
+      radius: 3.5,
+      orbitRadius: 26,
+      orbitSpeed: 0.628, // ~10s orbital period around C#
       initialAngle: 1.2,
       inclination: 0.15,
       priority: 95
@@ -203,9 +203,9 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '02',
       status: 'Active',
-      radius: 2.1,
-      orbitRadius: 22,
-      orbitSpeed: 0.012,
+      radius: 3.5,
+      orbitRadius: 24,
+      orbitSpeed: 0.698, // ~9s orbital period around Python
       initialAngle: 0.8,
       inclination: 0.12,
       priority: 95
@@ -218,9 +218,9 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '03',
       status: 'Shipped',
-      radius: 2.0,
-      orbitRadius: 20,
-      orbitSpeed: 0.014,
+      radius: 3.4,
+      orbitRadius: 22,
+      orbitSpeed: 0.571, // ~11s orbital period around Rust
       initialAngle: 2.9,
       inclination: -0.16,
       priority: 95
@@ -233,9 +233,9 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '04',
       status: 'Scientific MVP',
-      radius: 1.8,
+      radius: 3.2,
       orbitRadius: 36,
-      orbitSpeed: 0.008,
+      orbitSpeed: 0.449, // ~14s orbital period around Python
       initialAngle: 3.4,
       inclination: -0.18,
       priority: 95
@@ -247,9 +247,9 @@ export const GALAXY_CONFIG = {
       name: 'Polaris',
       parentPlanetId: 'python',
       isMajor: false,
-      radius: 1.2,
-      orbitRadius: 48,
-      orbitSpeed: 0.006,
+      radius: 2.3,
+      orbitRadius: 46,
+      orbitSpeed: 0.393, // ~16s orbital period
       initialAngle: 5.1,
       inclination: 0.1,
       priority: 45
@@ -259,9 +259,9 @@ export const GALAXY_CONFIG = {
       name: 'Sita',
       parentPlanetId: 'python',
       isMajor: false,
-      radius: 1.1,
-      orbitRadius: 60,
-      orbitSpeed: 0.005,
+      radius: 2.2,
+      orbitRadius: 56,
+      orbitSpeed: 0.349, // ~18s orbital period
       initialAngle: 1.9,
       inclination: -0.14,
       priority: 40
@@ -271,9 +271,9 @@ export const GALAXY_CONFIG = {
       name: 'myselfdiva',
       parentPlanetId: 'typescript',
       isMajor: false,
-      radius: 1.4,
-      orbitRadius: 24,
-      orbitSpeed: 0.014,
+      radius: 2.4,
+      orbitRadius: 26,
+      orbitSpeed: 0.524, // ~12s orbital period
       initialAngle: 2.1,
       inclination: 0.1,
       priority: 45
@@ -283,9 +283,9 @@ export const GALAXY_CONFIG = {
       name: 'HackMe 2024',
       parentPlanetId: 'cpp',
       isMajor: false,
-      radius: 1.3,
-      orbitRadius: 22,
-      orbitSpeed: 0.016,
+      radius: 2.3,
+      orbitRadius: 24,
+      orbitSpeed: 0.628, // ~10s orbital period
       initialAngle: 0.4,
       inclination: -0.12,
       priority: 45

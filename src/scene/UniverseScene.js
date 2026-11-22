@@ -107,6 +107,7 @@ export class UniverseScene {
     // Moon Night Mode State
     this.activeNightMoon = null;
     this.nightTween = null;
+    this.timeDilation = 1.0;
 
     this.bindEvents();
   }
@@ -128,8 +129,9 @@ export class UniverseScene {
 
       const moon = createMoon(mConfig, parentPlanet);
       this.moons[mConfig.id] = moon;
-      this.scene.add(moon.group);
-      this.scene.add(moon.trailLine);
+      // Add moon and its orbit ribbon directly to parent planet group
+      parentPlanet.group.add(moon.group);
+      parentPlanet.group.add(moon.trailLine);
       this.clickableObjects.push(moon.mesh);
     });
   }
@@ -283,6 +285,7 @@ export class UniverseScene {
     window.dispatchEvent(new CustomEvent('universe:mode-changed', { detail: { mode } }));
 
     if (mode === 'explore') {
+      gsap.to(this, { timeDilation: 1.0, duration: 0.6, ease: 'power2.out' });
       // If no target is explicitly focused, ensure exploreTarget centers on the solar origin (0, 0, 0)
       if (!this.focusedTarget) {
         this.exploreTarget.set(0, 0, 0);
@@ -392,7 +395,7 @@ export class UniverseScene {
       this.nightTween.to(this.renderer, { toneMappingExposure: 0.92 }, 0);
     }
     if (moonObj.material) {
-      this.nightTween.to(moonObj.material, { emissiveIntensity: 0.9 }, 0);
+      this.nightTween.to(moonObj.material, { emissiveIntensity: 1.25 }, 0);
     }
   }
 
@@ -414,7 +417,8 @@ export class UniverseScene {
       this.nightTween.to(this.renderer, { toneMappingExposure: 1.08 }, 0);
     }
     if (prevMoon.material) {
-      this.nightTween.to(prevMoon.material, { emissiveIntensity: 0 }, 0);
+      const baseEmissive = prevMoon.config?.isMajor ? 0.55 : 0.35;
+      this.nightTween.to(prevMoon.material, { emissiveIntensity: baseEmissive }, 0);
     }
   }
 
@@ -427,6 +431,7 @@ export class UniverseScene {
         isSun: true
       };
       this.exploreTarget.set(0, 0, 0);
+      gsap.to(this, { timeDilation: 1.0, duration: 0.8, ease: 'power2.inOut' });
       return;
     }
 
@@ -449,8 +454,11 @@ export class UniverseScene {
       if (this.activeNightMoon !== targetObj) {
         this.enterNightMode(targetObj);
       }
+      // Gentle time-dilation down to 35% speed for effortless reading
+      gsap.to(this, { timeDilation: 0.35, duration: 0.8, ease: 'power2.out' });
     } else {
       this.exitNightMode();
+      gsap.to(this, { timeDilation: 1.0, duration: 0.8, ease: 'power2.inOut' });
     }
 
     this.focusedTarget = {
@@ -464,6 +472,7 @@ export class UniverseScene {
   clearFocus() {
     this.focusedTarget = null;
     this.exitNightMode();
+    gsap.to(this, { timeDilation: 1.0, duration: 0.8, ease: 'power2.inOut' });
   }
 
   update(dt, time) {
@@ -473,9 +482,10 @@ export class UniverseScene {
     // 2. Starfield Subtle Twinkle
     this.starfield.update(time);
 
-    // 3. Update Planetary Keplerian Orbits
-    Object.values(this.planets).forEach(planet => planet.update(dt));
-    Object.values(this.moons).forEach(moon => moon.update(dt));
+    // 3. Update Planetary Keplerian Orbits with Time-Dilation
+    const effectiveDt = dt * this.timeDilation;
+    Object.values(this.planets).forEach(planet => planet.update(effectiveDt, time));
+    Object.values(this.moons).forEach(moon => moon.update(effectiveDt, time));
 
     // 4. Interactive Hover Raycast
     if (this.hasPointerMoved && this.pickingPointer.x !== -999) {
