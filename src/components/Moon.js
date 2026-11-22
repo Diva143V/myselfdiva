@@ -90,7 +90,8 @@ export function createMoon(config, parentPlanet) {
   beaconMesh.position.y = radius * 0.17;
   stationGroup.add(beaconMesh);
 
-  group.add(stationGroup);
+  // Attach station fixture directly to rotating mesh so it tracks the surface in lockstep
+  mesh.add(stationGroup);
 
   // 4. Luminous Orbit Ribbon around parent planet
   const trailSegments = 84;

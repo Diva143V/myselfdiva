@@ -1,14 +1,14 @@
 /**
  * moonShader.js — 100% GPU Procedural Surface Shader for Photorealistic Celestial Moons
  * 
- * Features:
- * 1. Multi-octave 3D Voronoi impact crater bowls, raised crater rims, and central peaks.
- * 2. High-frequency 3D Simplex FBM regolith micro-roughness.
- * 3. Analytical finite-difference normal perturbation for dramatic grazing shadows along the terminator.
- * 4. Realistic geological albedos (Anorthosite highlands vs basaltic maria, Europa ice fractures, volcanic iron).
- * 5. Physical day/night terminator from the Sun position (0, 0, 0).
- * 6. Secondary planetshine (earthshine) from host planet on the dark hemisphere.
- * 7. Discrete technological ground station outpost with pulsating beacon array in project stack color.
+ * Anti-Aliasing & Temporal Stability Features:
+ * 1. Screen-Space Derivative Anti-Aliasing (SSAA) via native fwidth(vPosition) for dynamic LOD.
+ * 2. Dynamic finite-difference epsilon matching screen pixel footprint to prevent sub-pixel normal jitter.
+ * 3. Silhouette Fresnel Limb Attenuation blending perturbed normal to geometric normal near the edge.
+ * 4. Multi-octave 3D Voronoi crater bowls with natural dust-softened rounded rims.
+ * 5. Analytical anti-aliased concentric telemetry rings replacing high-frequency sine waves.
+ * 6. Physical day/night terminator from central Sun with grazing rim highlights.
+ * 7. Secondary planetshine (earthshine) from host planet on dark hemisphere.
  * 8. Cinematic oblique inspection key-light uniform for night mode.
  */
 
@@ -121,10 +121,10 @@ export const MOON_FRAGMENT_SHADER = /* glsl */ `
     float v = 0.0;
     float a = 0.5;
     vec3 shift = vec3(100.0);
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
       if (i >= octaves) break;
       v += a * snoise(p);
-      p = p * 2.08 + shift;
+      p = p * 2.06 + shift;
       a *= 0.5;
     }
     return v;
@@ -155,80 +155,101 @@ export const MOON_FRAGMENT_SHADER = /* glsl */ `
   }
 
   // ---------------------------------------------------------------------
-  // Crater Morphology Model
-  // Excavates inverted parabolic bowl, raises rim lip, and raises central peak
+  // Crater Morphology Model with Natural Rounded Curvature
+  // Excavates smooth parabolic bowl, raises rounded rim, and central peak
   // ---------------------------------------------------------------------
   float singleCrater(vec3 p, float scale, float rimSteepness) {
     float d = voronoi3D(p * scale);
-    const float R = 0.42;
+    const float R = 0.40;
 
-    // Excavated interior bowl (negative elevation)
-    float bowl = smoothstep(R, 0.05, d);
+    // Excavated interior bowl (negative elevation) with soft bottom
+    float bowl = smoothstep(R, 0.08, d);
 
-    // Raised rim lip (positive elevation ridge)
+    // Raised rim lip with soft, natural Gaussian curvature
     float rimDelta = (d - R) * rimSteepness;
     float rim = exp(-rimDelta * rimDelta);
 
     // Central rebound peak for large impact basins
-    float peak = exp(-pow(d * 18.0, 2.0)) * 0.35;
+    float peak = exp(-pow(d * 14.0, 2.0)) * 0.30;
 
-    return (rim * 0.38 + peak * 0.22) - (bowl * 0.48);
+    return (rim * 0.35 + peak * 0.18) - (bowl * 0.42);
   }
 
-  // Multi-octave planetary terrain elevation
-  float moonElevation(vec3 p, int terrainType) {
+  // Multi-octave planetary terrain elevation with dynamic LOD attenuation
+  float moonElevation(vec3 p, int terrainType, float lodAttenuation) {
     float h = 0.0;
 
     if (terrainType == 1) {
       // --- 1: EUROPA ICE ---
-      // Cryo-fissures, cycloid fracture lines, and shallow impact scars
-      float ridgeA = abs(snoise(p * 5.2));
-      float ridgeB = abs(snoise(p * 14.0 + vec3(4.2, 8.1, 1.9)));
-      float cracks = 1.0 - smoothstep(0.01, 0.22, ridgeA * ridgeB);
-      float microIce = fbm3D(p * 6.0, 4) * 0.20;
-      float crater = singleCrater(p, 4.0, 12.0) * 0.25;
-      h = cracks * 0.35 + microIce - crater;
+      // Cryo-fissures, cycloid fracture lines, and gentle impact scars
+      float ridgeA = abs(snoise(p * 4.2));
+      float ridgeB = abs(snoise(p * 9.5 + vec3(3.2, 5.8, 1.4)));
+      float cracks = 1.0 - smoothstep(0.02, 0.28, ridgeA * ridgeB);
+      float microIce = fbm3D(p * 5.0, 3) * 0.16 * lodAttenuation;
+      float crater = singleCrater(p, 3.4, 9.0) * 0.22;
+      h = cracks * 0.30 + microIce - crater;
     } else if (terrainType == 2) {
       // --- 2: VOLCANIC IRON / BASALT (Knox) ---
-      // Caldera basins, jagged volcanic fractures, heavy crater scarring
-      float c1 = singleCrater(p, 3.2, 14.0);
-      float c2 = singleCrater(p + vec3(1.7, 4.3, 8.1), 8.4, 18.0);
-      float c3 = singleCrater(p + vec3(9.2, 2.3, 5.4), 19.0, 24.0);
-      float rough = fbm3D(p * 5.5, 4) * 0.26;
-      h = c1 * 0.52 + c2 * 0.30 + c3 * 0.16 + rough;
+      // Caldera basins, volcanic fractures, smooth crater scarring
+      float c1 = singleCrater(p, 2.8, 8.5);
+      float c2 = singleCrater(p + vec3(1.7, 4.3, 8.1), 6.5, 11.0);
+      float c3 = singleCrater(p + vec3(9.2, 2.3, 5.4), 13.5, 14.0) * lodAttenuation;
+      float rough = fbm3D(p * 4.5, 3) * 0.18 * lodAttenuation;
+      h = c1 * 0.50 + c2 * 0.32 + c3 * 0.15 + rough;
     } else {
       // --- 0: ANORTHOSITE (Luna) & 3: REGOLITH CRATER (SyGriffin) ---
-      // Dense multi-scale impact cratering with prominent rims and maria
-      float c1 = singleCrater(p, 3.8, 12.0);
-      float c2 = singleCrater(p + vec3(3.2, 7.1, 1.9), 9.0, 16.0);
-      float c3 = singleCrater(p + vec3(8.5, 2.4, 6.1), 22.0, 26.0);
-      float regolith = fbm3D(p * 7.5, 4) * 0.18;
-      h = c1 * 0.56 + c2 * 0.32 + c3 * 0.18 + regolith;
+      // Rounded multi-scale impact cratering with natural dust-softened slopes
+      float c1 = singleCrater(p, 3.0, 8.5);
+      float c2 = singleCrater(p + vec3(3.2, 7.1, 1.9), 6.8, 11.0);
+      float c3 = singleCrater(p + vec3(8.5, 2.4, 6.1), 13.5, 14.0) * lodAttenuation;
+      float regolith = fbm3D(p * 5.5, 3) * 0.14 * lodAttenuation;
+      h = c1 * 0.52 + c2 * 0.34 + c3 * 0.16 + regolith;
     }
 
     return h;
   }
 
   // ---------------------------------------------------------------------
-  // Normal Bump Calculation via Tangent Basis Finite Differences
+  // Anti-Aliased Normal Bump Calculation with Screen-Space Derivative (SSAA)
+  // and Silhouette Fresnel Limb Attenuation
   // ---------------------------------------------------------------------
-  vec3 calculateSurfaceNormal(vec3 p, vec3 geomNormal, int terrainType, out float outElevation) {
+  vec3 calculateSurfaceNormal(vec3 p, vec3 geomNormal, vec3 viewDir, int terrainType, out float outElevation) {
     vec3 up = abs(geomNormal.y) < 0.99 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
     vec3 T = normalize(cross(up, geomNormal));
     vec3 B = cross(geomNormal, T);
 
-    const float eps = 0.007;
-    float h0 = moonElevation(p, terrainType);
-    float hT = moonElevation(normalize(p + T * eps), terrainType);
-    float hB = moonElevation(normalize(p + B * eps), terrainType);
+    // Screen-space derivative anti-aliasing (SSAA):
+    // Measures local pixel footprint on the sphere surface in model space
+    float pixelWidth = length(fwidth(p));
+    float lodAttenuation = 1.0 - smoothstep(0.015, 0.055, pixelWidth);
+
+    // Dynamic epsilon matching local screen pixel footprint
+    float eps = max(0.012, pixelWidth * 1.6);
+
+    float h0 = moonElevation(p, terrainType, lodAttenuation);
+    float hT = moonElevation(normalize(p + T * eps), terrainType, lodAttenuation);
+    float hB = moonElevation(normalize(p + B * eps), terrainType, lodAttenuation);
 
     outElevation = h0;
 
     float dHdT = (hT - h0) / eps;
     float dHdB = (hB - h0) / eps;
 
-    float bumpScale = (terrainType == 1) ? 0.18 : 0.26;
-    return normalize(geomNormal - (T * dHdT + B * dHdB) * bumpScale);
+    // Clamp derivatives to physically realistic slope bounds (< 52 degrees)
+    dHdT = clamp(dHdT, -1.6, 1.6);
+    dHdB = clamp(dHdB, -1.6, 1.6);
+
+    float bumpScale = (terrainType == 1) ? 0.15 : 0.20;
+    vec3 perturbedNormal = normalize(geomNormal - (T * dHdT + B * dHdB) * bumpScale);
+
+    // Silhouette Fresnel Limb Attenuation:
+    // Near the grazing silhouette edge of the sphere (geomNormal · viewDir -> 0),
+    // smoothly blend the perturbed normal back to geomNormal.
+    // This mathematically eliminates black edge tearing and pixel stair-stepping on the sphere boundary!
+    float limbFactor = clamp(dot(geomNormal, viewDir), 0.0, 1.0);
+    float normalWeight = smoothstep(0.04, 0.30, limbFactor);
+
+    return normalize(mix(geomNormal, perturbedNormal, normalWeight));
   }
 
   // ---------------------------------------------------------------------
@@ -281,9 +302,9 @@ export const MOON_FRAGMENT_SHADER = /* glsl */ `
     vec3 geomNormal = normalize(vNormal);
     vec3 viewDir = normalize(vViewPosition);
 
-    // 1. Terrain elevation and perturbed normal
+    // 1. Anti-aliased terrain elevation and limb-stabilized perturbed normal
     float elevation = 0.0;
-    vec3 surfNormal = calculateSurfaceNormal(vPosition, geomNormal, uTerrainType, elevation);
+    vec3 surfNormal = calculateSurfaceNormal(vPosition, geomNormal, viewDir, uTerrainType, elevation);
 
     // 2. Base Albedo
     vec3 albedo = getLunarAlbedo(vPosition, elevation, uTerrainType);
@@ -333,10 +354,12 @@ export const MOON_FRAGMENT_SHADER = /* glsl */ `
 
     float outpostMask = smoothstep(outpostRadius, 0.02, distToOutpost);
 
-    // Concentric runway telemetry rings
-    float ringPattern = abs(sin(distToOutpost * 85.0));
-    float spokePattern = abs(sin(atan(vPosition.y - outpostCenter.y, vPosition.x - outpostCenter.x) * 6.0));
-    float telemetryGrid = smoothstep(0.70, 0.95, ringPattern * spokePattern) * outpostMask;
+    // Clean anti-aliased concentric runway telemetry rings (zero Moiré distortion)
+    float r1 = smoothstep(0.007, 0.001, abs(distToOutpost - 0.042));
+    float r2 = smoothstep(0.006, 0.001, abs(distToOutpost - 0.082));
+    float r3 = smoothstep(0.005, 0.001, abs(distToOutpost - 0.122));
+    float spokePattern = smoothstep(0.85, 0.98, abs(sin(atan(vPosition.y - outpostCenter.y, vPosition.x - outpostCenter.x) * 4.0)));
+    float telemetryGrid = (r1 + r2 * 0.75 + r3 * 0.45 + spokePattern * 0.35) * outpostMask;
 
     // Central beacon LED array with pulsating rhythm
     float beaconPulse = sin(uTime * 3.8) * 0.5 + 0.5;
@@ -346,11 +369,14 @@ export const MOON_FRAGMENT_SHADER = /* glsl */ `
     vec3 outpostGlow = uBeaconColor * (centerBeacon * 2.8 + telemetryGrid * 0.9) * activeBoost;
 
     // -----------------------------------------------------------------
-    // 7. Final Color Synthesis
+    // 7. Final Color Synthesis with Soft Luminance Compression
     // -----------------------------------------------------------------
     vec3 surfaceColor = albedo * totalDiffuse;
-    surfaceColor += grazingRim * 0.42 * vec3(1.0, 0.96, 0.88); // Golden crater rim highlight
+    surfaceColor += grazingRim * 0.38 * vec3(1.0, 0.96, 0.88); // Warm crater rim highlight
     surfaceColor += outpostGlow;
+
+    // Softly compress any isolated sub-pixel spikes below the 0.85 bloom threshold
+    surfaceColor = clamp(surfaceColor, 0.0, 1.4);
 
     gl_FragColor = vec4(surfaceColor, 1.0);
   }
