@@ -1,10 +1,12 @@
 /**
- * Moon.js — Chiseled Crystalline Asteroids with Glowing Core Beacons & Orbit Ribbons
+ * Moon.js — Photorealistic Celestial Moons with Procedural Crater Shaders,
+ * Host Planetshine, and Discrete Ground Station Telemetry Outposts.
  */
 
 import * as THREE from 'three';
+import { MoonShader } from '../shaders/moonShader.js';
 
-// Stack color palette mapping for beacons
+// Stack color palette mapping for beacons & ground stations
 const STACK_BEACON_COLORS = {
   python: 0x00e599,     // Electric Emerald (Griffin, SyGriffin, Sita)
   csharp: 0xa855f7,     // Vivid Amethyst (LiveSubs)
@@ -16,6 +18,13 @@ const STACK_BEACON_COLORS = {
   'c++': 0xef4444
 };
 
+const TERRAIN_TYPE_MAP = {
+  anorthosite: 0,
+  europa_ice: 1,
+  volcanic_iron: 2,
+  regolith_crater: 3
+};
+
 export function createMoon(config, parentPlanet) {
   const group = new THREE.Group();
   group.name = 'Moon_' + config.id;
@@ -23,32 +32,29 @@ export function createMoon(config, parentPlanet) {
   const radius = config.radius || 1.6;
   const parentStack = (parentPlanet.config.id || parentPlanet.config.name || 'python').toLowerCase();
   const beaconHex = STACK_BEACON_COLORS[parentStack] || 0xf59e0b;
+  const parentPlanetColor = parentPlanet.config.color || 0x94a3b8;
 
-  // 1. Chiseled Crystalline Faceted Geometry
-  const rawGeo = new THREE.IcosahedronGeometry(radius, 1);
-  const facetedGeo = rawGeo.index ? rawGeo.toNonIndexed() : rawGeo; // Guarantees distinct face normals for sharp facet edges
+  // 1. High-Density Spherical Geometry for Procedural Crater Shader
+  // 64x48 segments provide silky smooth spherical silhouette at 60fps
+  const geometry = new THREE.SphereGeometry(radius, 64, 48);
 
-  // Displace vertices to create geometric crystalline fractures
-  const posAttr = facetedGeo.attributes.position;
-  for (let i = 0; i < posAttr.count; i++) {
-    const vx = posAttr.getX(i);
-    const vy = posAttr.getY(i);
-    const vz = posAttr.getZ(i);
-    const noise = 1.0 + (Math.sin(vx * 4.0) * Math.cos(vy * 4.0) * Math.sin(vz * 4.0)) * 0.18;
-    posAttr.setXYZ(i, vx * noise, vy * noise, vz * noise);
-  }
-  facetedGeo.computeVertexNormals();
+  // 2. Clone Uniforms and Configure Procedural Lunar Shader
+  const uniforms = THREE.UniformsUtils.clone(MoonShader.uniforms);
+  uniforms.uBeaconColor.value.set(beaconHex);
+  uniforms.uPlanetColor.value.set(parentPlanetColor);
 
-  const material = new THREE.MeshStandardMaterial({
-    color: config.isMajor ? 0xf8fafc : 0xcbd5e1,
-    roughness: 0.32,
-    metalness: 0.65,
-    flatShading: true,
-    emissive: new THREE.Color(beaconHex),
-    emissiveIntensity: config.isMajor ? 0.55 : 0.35 // Active crystalline glow
+  const terrainIndex = TERRAIN_TYPE_MAP[config.terrainType] !== undefined
+    ? TERRAIN_TYPE_MAP[config.terrainType]
+    : (parentStack === 'csharp' ? 0 : (parentStack === 'rust' ? 2 : (parentStack === 'typescript' ? 1 : 0)));
+  uniforms.uTerrainType.value = terrainIndex;
+
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: MoonShader.vertexShader,
+    fragmentShader: MoonShader.fragmentShader
   });
 
-  const mesh = new THREE.Mesh(facetedGeo, material);
+  const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.userData = {
@@ -58,43 +64,35 @@ export function createMoon(config, parentPlanet) {
   };
   group.add(mesh);
 
-  // 2. Central Glowing Core Beacon
-  const beaconGeo = new THREE.SphereGeometry(radius * 0.52, 16, 16);
-  const beaconMat = new THREE.MeshBasicMaterial({
-    color: beaconHex,
-    transparent: true,
-    opacity: 0.95
-  });
+  // 3. Discrete Surface Research Station Outpost Fixture
+  // Localized physical telemetry array placed at the outpost coordinates
+  const outpostDir = new THREE.Vector3(0.52, 0.38, 0.76).normalize();
+  const stationGroup = new THREE.Group();
+  stationGroup.position.copy(outpostDir.clone().multiplyScalar(radius * 0.99));
+  stationGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), outpostDir);
+
+  const mastGeo = new THREE.CylinderGeometry(radius * 0.015, radius * 0.025, radius * 0.14, 6);
+  const mastMat = new THREE.MeshBasicMaterial({ color: 0x94a3b8 });
+  const mastMesh = new THREE.Mesh(mastGeo, mastMat);
+  mastMesh.position.y = radius * 0.07;
+  stationGroup.add(mastMesh);
+
+  const dishGeo = new THREE.ConeGeometry(radius * 0.06, radius * 0.035, 8, 1, true);
+  const dishMat = new THREE.MeshBasicMaterial({ color: 0xe2e8f0, side: THREE.DoubleSide });
+  const dishMesh = new THREE.Mesh(dishGeo, dishMat);
+  dishMesh.position.y = radius * 0.14;
+  dishMesh.rotation.x = Math.PI;
+  stationGroup.add(dishMesh);
+
+  const beaconGeo = new THREE.SphereGeometry(radius * 0.038, 8, 8);
+  const beaconMat = new THREE.MeshBasicMaterial({ color: beaconHex });
   const beaconMesh = new THREE.Mesh(beaconGeo, beaconMat);
-  group.add(beaconMesh);
+  beaconMesh.position.y = radius * 0.17;
+  stationGroup.add(beaconMesh);
 
-  // Subtle Outer Core Glow Halo Sprite (Camera-facing billboard for distance visibility)
-  const haloCanvas = document.createElement('canvas');
-  haloCanvas.width = 128;
-  haloCanvas.height = 128;
-  const hCtx = haloCanvas.getContext('2d');
-  const hGrad = hCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  hGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-  hGrad.addColorStop(0.22, 'rgba(255, 255, 255, 0.65)');
-  hGrad.addColorStop(0.55, 'rgba(255, 255, 255, 0.18)');
-  hGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  hCtx.fillStyle = hGrad;
-  hCtx.fillRect(0, 0, 128, 128);
-  const haloTexture = new THREE.CanvasTexture(haloCanvas);
+  group.add(stationGroup);
 
-  const haloMat = new THREE.SpriteMaterial({
-    map: haloTexture,
-    color: beaconHex,
-    blending: THREE.AdditiveBlending,
-    transparent: true,
-    opacity: config.isMajor ? 0.80 : 0.50,
-    depthWrite: false
-  });
-  const haloSprite = new THREE.Sprite(haloMat);
-  haloSprite.scale.set(radius * 3.6, radius * 3.6, 1);
-  group.add(haloSprite);
-
-  // 3. Luminous Fading Orbit Ribbon around parent planet
+  // 4. Luminous Orbit Ribbon around parent planet
   const trailSegments = 84;
   const trailPoints = [];
   const trailColors = [];
@@ -109,8 +107,6 @@ export function createMoon(config, parentPlanet) {
       Math.sin(theta) * config.orbitRadius
     ));
 
-    // Gradient along arc: brighter near major nodes
-    const alpha = config.isMajor ? 0.35 : 0.15;
     const c = dimColor.clone().lerp(baseColor, Math.sin(theta * 2.0) * 0.3 + 0.3);
     trailColors.push(c.r, c.g, c.b);
   }
@@ -134,28 +130,24 @@ export function createMoon(config, parentPlanet) {
     group,
     mesh,
     material,
-    beaconMesh,
-    haloSprite,
+    stationGroup,
     trailLine,
     config,
     parentPlanet,
     highlight(active) {
       trailMat.opacity = active ? 0.95 : (config.isMajor ? 0.55 : 0.25);
-      material.color.set(active ? 0xffffff : (config.isMajor ? 0xf8fafc : 0xcbd5e1));
-      beaconMat.opacity = active ? 1.0 : 0.95;
-      haloSprite.scale.set(radius * (active ? 5.0 : 3.6), radius * (active ? 5.0 : 3.6), 1);
+      material.uniforms.uHighlight.value = active ? 1.0 : 0.0;
     },
-    update(dt, time = 0) {
+    update(dt, time = 0, sunPosition = new THREE.Vector3(0, 0, 0)) {
       currentAngle += orbitSpeed * dt;
 
-      // Tidal lock rotation + slight axial precession
-      mesh.rotation.y += 0.8 * dt;
-      mesh.rotation.x = Math.sin(time * 0.5) * 0.15;
+      // Axial planetary rotation & slight precession
+      mesh.rotation.y += 0.45 * dt;
+      mesh.rotation.x = Math.sin(time * 0.4) * 0.08;
 
-      // Beacon breathing pulse
-      const pulse = 1.0 + Math.sin(time * 3.5 + config.orbitRadius) * 0.18;
+      // Pulse the physical outpost beacon
+      const pulse = 1.0 + Math.sin(time * 3.8) * 0.28;
       beaconMesh.scale.setScalar(pulse);
-      haloSprite.scale.set(radius * 3.6 * pulse, radius * 3.6 * pulse, 1);
 
       // Local coordinate relative to parent planet
       const localX = Math.cos(currentAngle) * orbitRadius;
@@ -163,6 +155,13 @@ export function createMoon(config, parentPlanet) {
       const localZ = Math.sin(currentAngle) * orbitRadius;
 
       group.position.set(localX, localY, localZ);
+
+      // Update shader uniforms
+      material.uniforms.uTime.value = time;
+      material.uniforms.uSunPosition.value.copy(sunPosition);
+
+      const parentPos = parentPlanet.getPosition ? parentPlanet.getPosition() : parentPlanet.group.position;
+      material.uniforms.uPlanetPosition.value.copy(parentPos);
     },
     getPosition() {
       const worldPos = new THREE.Vector3();

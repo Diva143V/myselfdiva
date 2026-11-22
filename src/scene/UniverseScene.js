@@ -394,7 +394,9 @@ export class UniverseScene {
     if (this.renderer) {
       this.nightTween.to(this.renderer, { toneMappingExposure: 0.92 }, 0);
     }
-    if (moonObj.material) {
+    if (moonObj.material?.uniforms?.uKeyLight) {
+      this.nightTween.to(moonObj.material.uniforms.uKeyLight, { value: 1.0 }, 0);
+    } else if (moonObj.material?.emissiveIntensity !== undefined) {
       this.nightTween.to(moonObj.material, { emissiveIntensity: 1.25 }, 0);
     }
   }
@@ -416,7 +418,9 @@ export class UniverseScene {
     if (this.renderer) {
       this.nightTween.to(this.renderer, { toneMappingExposure: 1.08 }, 0);
     }
-    if (prevMoon.material) {
+    if (prevMoon.material?.uniforms?.uKeyLight) {
+      this.nightTween.to(prevMoon.material.uniforms.uKeyLight, { value: 0.0 }, 0);
+    } else if (prevMoon.material?.emissiveIntensity !== undefined) {
       const baseEmissive = prevMoon.config?.isMajor ? 0.55 : 0.35;
       this.nightTween.to(prevMoon.material, { emissiveIntensity: baseEmissive }, 0);
     }
@@ -484,8 +488,9 @@ export class UniverseScene {
 
     // 3. Update Planetary Keplerian Orbits with Time-Dilation
     const effectiveDt = dt * this.timeDilation;
-    Object.values(this.planets).forEach(planet => planet.update(effectiveDt, time));
-    Object.values(this.moons).forEach(moon => moon.update(effectiveDt, time));
+    const sunPos = this.sun?.group?.position || this.tempVec.set(0, 0, 0);
+    Object.values(this.planets).forEach(planet => planet.update(effectiveDt, time, sunPos));
+    Object.values(this.moons).forEach(moon => moon.update(effectiveDt, time, sunPos));
 
     // 4. Interactive Hover Raycast
     if (this.hasPointerMoved && this.pickingPointer.x !== -999) {

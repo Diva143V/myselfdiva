@@ -188,6 +188,7 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '01',
       status: 'Shipped',
+      terrainType: 'anorthosite',
       radius: 3.5,
       orbitRadius: 26,
       orbitSpeed: 0.628, // ~10s orbital period around C#
@@ -203,6 +204,7 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '02',
       status: 'Active',
+      terrainType: 'europa_ice',
       radius: 3.5,
       orbitRadius: 24,
       orbitSpeed: 0.698, // ~9s orbital period around Python
@@ -218,6 +220,7 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '03',
       status: 'Shipped',
+      terrainType: 'volcanic_iron',
       radius: 3.4,
       orbitRadius: 22,
       orbitSpeed: 0.571, // ~11s orbital period around Rust
@@ -233,6 +236,7 @@ export const GALAXY_CONFIG = {
       isMajor: true,
       caseNumber: '04',
       status: 'Scientific MVP',
+      terrainType: 'regolith_crater',
       radius: 3.2,
       orbitRadius: 36,
       orbitSpeed: 0.449, // ~14s orbital period around Python
@@ -247,6 +251,7 @@ export const GALAXY_CONFIG = {
       name: 'Polaris',
       parentPlanetId: 'python',
       isMajor: false,
+      terrainType: 'volcanic_iron',
       radius: 2.3,
       orbitRadius: 46,
       orbitSpeed: 0.393, // ~16s orbital period
@@ -259,6 +264,7 @@ export const GALAXY_CONFIG = {
       name: 'Sita',
       parentPlanetId: 'python',
       isMajor: false,
+      terrainType: 'anorthosite',
       radius: 2.2,
       orbitRadius: 56,
       orbitSpeed: 0.349, // ~18s orbital period
@@ -271,6 +277,7 @@ export const GALAXY_CONFIG = {
       name: 'myselfdiva',
       parentPlanetId: 'typescript',
       isMajor: false,
+      terrainType: 'europa_ice',
       radius: 2.4,
       orbitRadius: 26,
       orbitSpeed: 0.524, // ~12s orbital period
@@ -283,6 +290,7 @@ export const GALAXY_CONFIG = {
       name: 'HackMe 2024',
       parentPlanetId: 'cpp',
       isMajor: false,
+      terrainType: 'volcanic_iron',
       radius: 2.3,
       orbitRadius: 24,
       orbitSpeed: 0.628, // ~10s orbital period
