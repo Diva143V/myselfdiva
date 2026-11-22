@@ -355,11 +355,14 @@ export class FlightController {
   playStagedIgnition() {
     const overlay = document.getElementById('ignition-curtain');
     const heroContent = document.querySelector('.hero-cinematic-content');
+    const heroWords = document.querySelectorAll('.hero-word');
+    const heroRest = document.querySelectorAll('.hero-status-pill, .hero-positioning, .hero-meta-status, .hero-actions');
 
+    const reducedMotion = this.reducedMotion || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
     tl.to(this.universe.sun.light, {
-      intensity: 2.8,
+      intensity: 3.2,
       duration: 1.8,
       delay: 0.2
     })
@@ -369,12 +372,30 @@ export class FlightController {
       onComplete: () => {
         if (overlay) overlay.style.display = 'none';
       }
-    }, '-=1.2')
-    .from(heroContent, {
-      y: 40,
-      opacity: 0,
-      duration: 1.2
-    }, '-=0.8');
+    }, '-=1.2');
+
+    if (!reducedMotion && heroWords.length > 0) {
+      tl.from(heroWords, {
+        y: 35,
+        opacity: 0,
+        filter: 'blur(10px)',
+        duration: 1.3,
+        stagger: 0.16,
+        ease: 'power3.out'
+      }, '-=1.0')
+      .from(heroRest, {
+        y: 20,
+        opacity: 0,
+        duration: 0.9,
+        stagger: 0.10,
+        ease: 'power2.out'
+      }, '-=0.8');
+    } else {
+      tl.from(heroContent, {
+        opacity: 0,
+        duration: 0.8
+      }, '-=0.8');
+    }
   }
 
   initMagneticButtons() {
