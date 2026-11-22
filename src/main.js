@@ -16,11 +16,11 @@ import { LabelManager } from './components/LabelManager.js';
 import { ProbeModal } from './interaction/ProbeModal.js';
 import { FlightController } from './interaction/FlightController.js';
 
-// Detect WebGL2 support
-function isWebGL2Available() {
+// Universal WebGL Support Detection (WebGL 2 with WebGL 1 fallback)
+function isWebGLAvailable() {
   try {
     const canvas = document.createElement('canvas');
-    return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+    return !!(window.WebGLRenderingContext && (canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
   } catch (e) {
     return false;
   }
@@ -32,22 +32,10 @@ function initApp() {
 
   if (!canvasContainer || !labelContainer) return;
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Fallback to static complete version if WebGL2 is missing or reduced motion is set
-  if (!isWebGL2Available() || reducedMotion) {
-    document.body.classList.add('is-static-fallback');
-    console.info('Serving static complete version (WebGL fallback / prefers-reduced-motion active).');
-    initStaticFallback();
-    setupMobileNav();
-    setupMonochromeToggle();
-    return;
-  }
-
   let universeScene, postProcessing, governor, labelManager, probeModal, flightController;
 
   try {
-    // 1. Initialize Universe 3D Scene
+    // 1. Initialize Universe 3D Scene for all devices
     universeScene = new UniverseScene(canvasContainer, labelContainer);
 
     // 2. Initialize Post-Processing Pipeline
@@ -57,7 +45,7 @@ function initApp() {
       universeScene.camera
     );
 
-    // 3. Initialize Adaptive Quality Governor
+    // 3. Initialize Adaptive Quality Governor (Real-time frame rate scaling across all devices)
     governor = new AdaptiveGovernor({
       onQualityChange: (tier, scale) => {
         universeScene.setQualityScale(scale);

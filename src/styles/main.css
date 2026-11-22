@@ -1654,40 +1654,13 @@ body.is-explore-mode #webgl-universe-container canvas:active {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Soften UI transitions while preserving the 3D cosmos */
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
-  #webgl-universe-container {
-    display: none;
-  }
-  #labels-3d-overlay {
-    display: none;
-  }
   #ignition-curtain {
-    display: none;
-  }
-  .scroll-flight-track {
-    height: auto;
-    pointer-events: auto;
-  }
-  .flight-stage-container {
-    position: relative;
-    height: auto;
-    pointer-events: auto;
-  }
-  .flight-deck {
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    transition: none !important;
-  }
-  .flight-case-card {
-    display: block !important;
-    opacity: 1 !important;
-    transform: none !important;
-    pointer-events: auto !important;
-    transition: none !important;
-    margin-bottom: 2rem;
+    display: none !important;
   }
 }
